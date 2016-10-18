@@ -1,5 +1,5 @@
-#ifndef __CLIENT__
-#define __CLIENT__
+#ifndef __SERVER__
+#define __SERVER__
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,18 +13,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 
-
-void exitOver();
-FILE* openFile(char *file); 
-int connectServer(char *ip,int port);
-
-
-
-
-
-
-
-
-
+int socketinit(int port);
+FILE * createFile(char *fileName);
 
 #endif
