@@ -18,8 +18,8 @@
 #include <list>
 
 int socketinit(int port);
-int sendMsg(list<int> *li,int fd,char *msg,int msgLen);
+int sendMsg(std::list<int> *li,int fd,char *msg,int msgLen);
 
-int addList(list<int> *li,int fd);
-int removeList(list<int> *li,int fd);
+int addList(std::list<int> *li,int fd);
+int removeList(std::list<int> *li,int fd);
 #endif

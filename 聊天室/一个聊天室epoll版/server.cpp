@@ -11,7 +11,7 @@ int main(int argc, char const *argv[])
 	int port;
 	char buf[MAXBUF];
 	int online = 0;
-	list<int> fdList;
+	std::list<int> fdList;
 	int serversock = -1;
 
 	if (argc < 2){
@@ -58,11 +58,11 @@ int main(int argc, char const *argv[])
 					perror("accept client");
 					continue;
 				}
-				sprintf("a new client:%d\n",acceptClient);
+				printf("a new client:%d\n",acceptClient);
 				tempEvent.events = EPOLLIN;
 				tempEvent.data.fd = acceptClient;
 				if ((online+1) > EPOLL_SIZE){
-					sprintf("more than EPOLL_SIZE\n");
+					printf("more than EPOLL_SIZE\n");
 					continue;
 				}
 				if (epoll_ctl(epollFd,EPOLL_CTL_ADD,acceptClient,&tempEvent) == -1){
@@ -94,15 +94,16 @@ int main(int argc, char const *argv[])
 }
 
 
-int sendMsg(list<int> *li,int fd,char *msg,int msgLen)
+int sendMsg(std::list<int> *li,int fd,char *msg,int msgLen)
 {
 	int sendLen = 0;
-	list<int>::iterator b,e;
+	std::list<int>::iterator b,e;
 	b = li->begin();
 	e = li->end();
 	for (; b != e; ++b){
-		if (*b != fd ){
-			sendLen = send(fd,msg,msgLen,0);
+		if (*b != fd ){		
+			write(STDOUT_FILENO,msg,msgLen);
+			sendLen = send(*b,msg,msgLen,0);
 			if(sendLen < 0){
 				perror("send");
 			}
@@ -110,10 +111,11 @@ int sendMsg(list<int> *li,int fd,char *msg,int msgLen)
 	}
 }
 
-int addList(list<int> *li,int fd)
+int addList(std::list<int> *li,int fd)
 {
+	printf("addList:%d\n", fd);
 	bool have =false;
-	list<int>::iterator b,e;
+	std::list<int>::iterator b,e;
 	b = li->begin();
 	e = li->end();
 	for (; b != e; ++b){
@@ -128,8 +130,9 @@ int addList(list<int> *li,int fd)
 	return 0;
 }
 
-int removeList(list<int> *li,int fd)
+int removeList(std::list<int> *li,int fd)
 {
+	printf("removeList:%d\n", fd);
 	li->remove(fd);
 	return 0;
 }

@@ -14,11 +14,10 @@
 #include <errno.h>
 
 
-#include <sys/sendfile.h>
+#include <sys/epoll.h>
 
-int openFile(char *file); 
+
 int connectServer(char *ip,int port);
-unsigned long getFileSize(int fd);
 
 
 
