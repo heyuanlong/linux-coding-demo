@@ -3,14 +3,14 @@
 
 
 #define MAXBUF 1500
-#define EPOLL_SIZE 1024
+
 
 int main(int argc, char const *argv[])
 {
 
 	int port;
 	char buf[MAXBUF];
-	int online = 0;
+
 	std::list<int> fdList;
 	int serversock = -1;
 
@@ -26,62 +26,51 @@ int main(int argc, char const *argv[])
 		perror("socketinit");
 		return 0;
 	}
-	int epollFd = epoll_create(EPOLL_SIZE);
-	if(epollFd == -1){
-		perror("epoll create");
-		close(serversock);
-		return 0;
-	}
+	
+	fd_set fdSet,tempFdSet;
+	int max_sock = 0;
 
-	struct epoll_event serverEpollEvent,tempEvent,readyEvent[EPOLL_SIZE];
-	serverEpollEvent.events = EPOLLIN;
-	serverEpollEvent.data.fd = serversock;
-	if (epoll_ctl(epollFd,EPOLL_CTL_ADD,serversock,&serverEpollEvent) == -1){
-		perror("epoll add serversock");
-		close(serversock);
-		return 0;
-	}
-	++online;
+	FD_ZERO(&fdSet);
+	FD_SET(serversock,&fdSet);
+	max_sock = serversock;
 
-	int readyEventNums = 0 ;
+
+	int eventNums = 0;
 	for ( ; ; )
 	{
-		readyEventNums = epoll_wait(epollFd,readyEvent,EPOLL_SIZE,-1);
-		for (int i = 0; i < readyEventNums; ++i)
+		tempFdSet = fdSet;
+		eventNums = select(max_sock +1 ,&tempFdSet,NULL,NULL,NULL);
+		if (eventNums < 0){
+			perror("select fail");
+		}
+
+		for (int i = 0; i <= max_sock; ++i)
 		{
-			if (!(readyEvent[i].events & EPOLLIN)){
+			if ( FD_ISSET(i,&tempFdSet) == 0){
 				continue;
 			}
-			if (readyEvent[i].data.fd == serversock ){
+
+			if (i == serversock ){
 				int acceptClient = accept(serversock,NULL,NULL);
 				if (acceptClient == -1){
 					perror("accept client");
 					continue;
 				}
 				printf("a new client:%d\n",acceptClient);
-				tempEvent.events = EPOLLIN;
-				tempEvent.data.fd = acceptClient;
-				if ((online+1) > EPOLL_SIZE){
-					printf("more than EPOLL_SIZE\n");
-					continue;
-				}
-				if (epoll_ctl(epollFd,EPOLL_CTL_ADD,acceptClient,&tempEvent) == -1){
-					perror("epoll add acceptClient");
-					continue;
-				}
+				FD_SET(acceptClient,&fdSet);
 				addList(&fdList,acceptClient);
-				++online;
+				max_sock = max_sock > acceptClient ? max_sock:acceptClient;		
 
 			}else{
-				int recvLen = recv(readyEvent[i].data.fd,buf,MAXBUF-1,0);
+				int recvLen = recv(i,buf,MAXBUF-1,0);
 				if(recvLen > 0){
-					sendMsg(&fdList,readyEvent[i].data.fd,buf,recvLen);
+					sendMsg(&fdList,i,buf,recvLen);
 
 				}else if (recvLen == 0){
-					close(readyEvent[i].data.fd);
-					epoll_ctl(epollFd,EPOLL_CTL_DEL,readyEvent[i].data.fd,NULL);
-					removeList(&fdList,readyEvent[i].data.fd);
-					--online;
+					close(i);
+					FD_CLR(i,&fdSet);
+					removeList(&fdList,i);
+					max_sock = getMaxFd	(&fdList,serversock);
 
 				}else{
 					perror("a client have error");
@@ -111,6 +100,20 @@ int sendMsg(std::list<int> *li,int originFd,char *msg,int msgLen)
 	}
 }
 
+int getMaxFd(std::list<int> *li,int serverFd)
+{
+	int max = 0;
+	max = serverFd;
+	std::list<int>::iterator b,e;
+	b = li->begin();
+	e = li->end();
+	for (; b != e; ++b){
+		if (*b > max){
+			max = *b;
+		}
+	}
+	return max;
+}
 int addList(std::list<int> *li,int fd)
 {
 	printf("addList:%d\n", fd);

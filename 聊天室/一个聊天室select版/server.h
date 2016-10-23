@@ -14,12 +14,13 @@
 #include <errno.h>
 
 
-#include <sys/epoll.h>
+#include <sys/select.h>
 #include <list>
 
 int socketinit(int port);
 int sendMsg(std::list<int> *li,int originFd,char *msg,int msgLen);
 
+int getMaxFd(std::list<int> *li,int serverFd);
 int addList(std::list<int> *li,int fd);
 int removeList(std::list<int> *li,int fd);
 #endif
