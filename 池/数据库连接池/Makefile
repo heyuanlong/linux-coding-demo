@@ -3,28 +3,28 @@ CC=g++
 
 SERVE=us
 CLIENT=uc
-OBJSERVE=us.o 
-OBJCLIENT=uc.o
+OBJSERVE=mysqlPool.o controlUnit.o server.o 
+OBJCLIENT=client.o
 
-CFLAGS=
+CFLAGS=-I/usr/include/mysql -L/usr/lib64/mysql -lmysqlclient
 
 
 #------------------------------------------------------------
-.PHONY: all
+.PHONY: all clean
 
 all:    $(SERVE) $(CLIENT)
 
 $(SERVE):   $(OBJSERVE)
-	$(CC) $(LDFLAGS) -o $(SERVE) $(OBJSERVE)
+	$(CC) $(CFLAGS) -o $(SERVE) $(OBJSERVE)
         
 $(CLIENT):   $(OBJCLIENT)
-	$(CC) $(LDFLAGS) -o $(CLIENT) $(OBJCLIENT)
+	$(CC)  -o $(CLIENT) $(OBJCLIENT)
         
 
-$(OBJSERVE): %.o:   server.cpp server.h base.h
-	$(CC) $(CFLAGS) -c -o $@ $<
+$(OBJSERVE): %.o:  %.cpp %.h
+	$(CC) $(CFLAGS) -c -o $@ $< 
 
-$(OBJCLIENT): %.o:   client.cpp client.h base.h
+$(OBJCLIENT): %.o:   %.cpp client.h base.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean:

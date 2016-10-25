@@ -4,6 +4,8 @@
 #include "mutex.h"
 #include "mysql.h"
 #include <string>
+#include <stdlib.h>
+#include <stdio.h>
 #include <list>
 class mysqlPool
 {

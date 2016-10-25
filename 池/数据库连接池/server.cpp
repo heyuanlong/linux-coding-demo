@@ -5,7 +5,7 @@
 #define MAXBUF 1500
 #define EPOLL_SIZE 2
 
-
+int calculateNums = 0;
 int main(int argc, char const *argv[])
 {
 
@@ -43,7 +43,7 @@ int main(int argc, char const *argv[])
 	}
 
 ///------------------回环连表
-	controlUnit *first = NULL,pre=NULL,controlGo = NULL;
+	controlUnit *first = NULL,*pre=NULL,*controlGo = NULL;
 	for ( int i= 0; i < 4 ; ++i){
 		pre = controlGo;
 		controlGo = new controlUnit();
@@ -54,14 +54,16 @@ int main(int argc, char const *argv[])
 
 		pthread_t threadId;
 		int preturn;
-		preturn = pthread_create(&threadId,&attr,deal,(void*)controlGo));
+		preturn = pthread_create(&threadId,&attr,deal,(void*)controlGo);
 		if (preturn != 0){
-			perror("pthread_create")
+			perror("pthread_create");
 			continue;
 		}
 	}
 	first->setNext(controlGo);
 //-----------------------------
+	pthread_t threadId;
+	pthread_create(&threadId,&attr,calculate,NULL);
 
 	int epollFd = epoll_create(EPOLL_SIZE);
 	if(epollFd == -1){
@@ -69,7 +71,7 @@ int main(int argc, char const *argv[])
 		close(serversock);
 		return 0;
 	}
-	struct epoll_event serversockEpollEvent,readyEvent[EPOLL_SIZE];
+	struct epoll_event serverEpollEvent,readyEvent[EPOLL_SIZE];
 	serverEpollEvent.events = EPOLLIN;
 	serverEpollEvent.data.fd = serversock;
 	if (epoll_ctl(epollFd,EPOLL_CTL_ADD,serversock,&serverEpollEvent) == -1){
@@ -88,7 +90,7 @@ int main(int argc, char const *argv[])
 		}
 		if(readyEventNums > 0)
 		{
-			if (!(readyEvent[i].events & EPOLLIN)){
+			if (!(readyEvent[0].events & EPOLLIN)){
 				continue;
 			}
 			//add 和 cond
@@ -96,8 +98,7 @@ int main(int argc, char const *argv[])
 			if (acceptClient == -1){
 				perror("accept client");
 				continue;
-			}
-			printf("a new client:%d\n",acceptClient);		
+			}	
 			controlGo = controlGo->getNext();
 			controlGo->push_back(acceptClient);
 			pthread_cond_signal(controlGo->getCond());
@@ -118,7 +119,7 @@ void cond_sign(controlUnit *cont)
 			pthread_cond_signal(cont->getCond());
 		}
 		cont = cont->getNext();
-	}while(first != cont)
+	}while(first != cont);
 }
 
 void* deal(void *param)
@@ -130,23 +131,27 @@ void* deal(void *param)
 	char buf[100];
 
 	while(1){
-		
-		while(cont->empty() || (sqlConn= mysqlPool::getInstance()->getConn())== NULL ){
-			pthread_cond_wait(cont->getConn(),cont->getMutex());
+		cont->lock();
+		while(cont->emptyNoLock() || (sqlConn= mysqlPool::getInstance()->getConn())== NULL ){
+			pthread_cond_wait(cont->getCond(),cont->getMutex());
 		}
-		int fd = cont.front();
-		cont.pop_front();
+		cont->unlock();
+		int fd = cont->front();
+		cont->pop_front();
 
 		const char * query= "select gameID,productName from test.product_info";
 		int re = mysql_query(sqlConn,query);
 		if (re == 0){
 			res = mysql_store_result(sqlConn);
 			while(row = mysql_fetch_row(res)){
-				sprintf(buf,"gameID:%s,productName:%s",row[0],row[1]);
+				sprintf(buf,"gameID:%s,productName:%s\n",row[0],row[1]);
 				sendMsg(fd,buf,strlen(buf));
-			}
+			}			
+			mysql_free_result(res);
 		}
+		close(fd);
 		mysqlPool::getInstance()->recycConn(sqlConn);
+		++calculateNums;
 		
 	}
 }
@@ -154,7 +159,6 @@ void* deal(void *param)
 int sendMsg(int originFd,char *msg,int msgLen)
 {
 	int sendLen = 0;
-	write(STDOUT_FILENO,msg,msgLen);
 	sendLen = send(originFd,msg,msgLen,0);
 	if(sendLen < 0){
 		perror("send");
@@ -187,4 +191,14 @@ int socketinit(int port)
 	}
 	return tempSock;
 
+}
+
+void* calculate(void *param)
+{
+	while(1){
+		sleep(1);
+		printf("%d\n",calculateNums );
+		calculateNums = 0;
+	}
+	return NULL;
 }

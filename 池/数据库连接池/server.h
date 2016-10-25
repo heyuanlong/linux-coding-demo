@@ -1,5 +1,5 @@
-#ifndef __SERVER__
-#define __SERVER__
+#ifndef __SERVER_H_
+#define __SERVER_H_
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,7 +24,8 @@
 
 int socketinit(int port);
 int sendMsg(int originFd,char *msg,int msgLen);
-
 void* deal(void *param);
+void* calculate(void *param);
 void cond_sign(controlUnit *cont);
+
 #endif

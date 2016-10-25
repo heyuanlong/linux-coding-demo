@@ -21,6 +21,9 @@ public:
 	int front();
 	void pop_front();
 	bool empty();
+	bool emptyNoLock();
+	void lock();
+	void unlock();
 	pthread_mutex_t * getMutex();
 	pthread_cond_t * getCond();
 	void setNext(controlUnit* n);

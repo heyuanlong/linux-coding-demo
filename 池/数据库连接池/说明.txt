@@ -1,7 +1,6 @@
-./us 6000
-./uc 127.0.0.1 6000 
-./uc 127.0.0.1 6000 
-./uc 127.0.0.1 6000 
 
+find / -name libmysqlclient.so
+若无，则要 yum install libmysqlclient-dev
 
-要开多个客户端。
+ln -s /opt/lampp/var/mysql/mysql.sock /var/lib/mysql/mysql.sock
+g++ -o testMysql testMysql.cpp -I/usr/include/mysql -L/usr/lib64/mysql -lmysqlclient

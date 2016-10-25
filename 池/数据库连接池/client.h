@@ -14,9 +14,6 @@
 #include <errno.h>
 
 
-#include <sys/epoll.h>
-
-
 int connectServer(char *ip,int port);
 
 

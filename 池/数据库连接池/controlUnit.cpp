@@ -6,6 +6,17 @@ controlUnit::controlUnit()
 controlUnit::~controlUnit()
 {}
 
+
+void controlUnit::lock()
+{
+	mutex.lock();
+}
+
+void controlUnit::unlock()
+{
+	mutex.unlock();
+}
+
 void controlUnit::push_back(int fd)
 {
 	mutex.lock();
@@ -40,6 +51,10 @@ bool controlUnit::empty()
 	temp = fdDeque.empty();
 	mutex.unlock();
 	return temp;
+}
+bool controlUnit::emptyNoLock()
+{
+	return fdDeque.empty();
 }
 
 pthread_mutex_t * controlUnit::getMutex()
