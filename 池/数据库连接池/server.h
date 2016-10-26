@@ -26,6 +26,6 @@ int socketinit(int port);
 int sendMsg(int originFd,const char *msg,int msgLen);
 void* deal(void *param);
 void* calculate(void *param);
-void cond_sign(controlUnit *cont);
+
 int getNewClientArr(char *buf,int *arrFd,int *arrNums);
 #endif

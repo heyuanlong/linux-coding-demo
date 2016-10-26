@@ -109,20 +109,6 @@ int main(int argc, char const *argv[])
 	return 0;
 }
 
-void cond_sign(controlUnit *cont)
-{
-	controlUnit * first = cont;
-	bool b;
-	do{
-		cont->lock();
-		b = cont->empty();
-		cont->unlock();
-		if (!b){
-			pthread_cond_signal(cont->getCond());
-		}
-		cont = cont->getNext();
-	}while(first != cont);
-}
 
 void* deal(void *param)
 {
@@ -148,22 +134,28 @@ void* deal(void *param)
 	}
 
 	int readyEventNums = 0 ;
-	char bufFd[512];
+	int const bufSize = 512;
+	char bufFd[bufSize];
 	int arrFd[102400];
 	int arrNums = 0;
+	int readLen = 0;
 	for ( ;  ; ){
 		
 		readyEventNums = epoll_wait(pthreadEpollFd,readyEvent,PTHREAD_EPOLL_SIZE,0);
+		write(STDOUT_FILENO,"ee",strlen("ee"));
 		for (int i = 0; i < readyEventNums; ++i){
-			if (!(readyEvent[i].events & EPOLLIN)){
+			if (!(readyEvent[i].events & EPOLLIN)){			
 				continue;
 			}
 
 			if (readyEvent[i].data.fd == readPipe){
 
-				if( read(readPipe,bufFd,512) < 0){
+				if( (readLen = read(readPipe,bufFd,bufSize - 1)) < 0){
 					perror("read");
 				}else{
+					bufFd[readLen] = '\0';
+					write(STDOUT_FILENO,bufFd,strlen(bufFd));
+					write(STDOUT_FILENO,"\n",strlen("\n"));
 					getNewClientArr(bufFd,arrFd,&arrNums);
 					for (int i = 0; i < arrNums; ++i)
 					{
@@ -177,6 +169,7 @@ void* deal(void *param)
 			}
 		}
 		if ((sqlConn= mysqlPool::getInstance()->getConn()) != NULL ){
+			write(STDOUT_FILENO,"ww",strlen("ww"));
 			arrNums = 102400;
 			cont->lock();
 			cont->getArrFd(arrFd,&arrNums);
@@ -191,6 +184,7 @@ void* deal(void *param)
 						sprintf(buf,"gameID:%s,productName:%s\n",row[0],row[1]);
 						if((sendMsg(arrFd[i],buf,strlen(buf)))<0){
 							cont->lock();
+							close(arrFd[i]);
 							cont->remove(arrFd[i]);
 							cont->unlock();
 						}
@@ -200,7 +194,6 @@ void* deal(void *param)
 				++calculateNums;
 			}
 			mysqlPool::getInstance()->recycConn(sqlConn);
-
 		}	
 	}
 
@@ -208,7 +201,7 @@ void* deal(void *param)
 int getNewClientArr(char *buf,int *arrFd,int *arrNums)
 {
 	int i = 0;
-	char str[512];
+	char str[512 + 1];
 	sprintf(str,buf,strlen(buf));
 	char *p;
 	char *buff = str;
