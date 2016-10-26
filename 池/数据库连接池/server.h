@@ -27,5 +27,5 @@ int sendMsg(int originFd,const char *msg,int msgLen);
 void* deal(void *param);
 void* calculate(void *param);
 
-int getNewClientArr(char *buf,int *arrFd,int *arrNums);
+int getNewClientArr(const char *buf,const char sep,int *arrFd,int *arrNums);
 #endif

@@ -43,7 +43,7 @@ int main(int argc, char const *argv[])
 		return 0;
 	}
 
-///------------------回环连表
+///------------------------------------------------回环连表
 	controlUnit *first = NULL,*pre=NULL,*controlGo = NULL;
 	for ( int i= 0; i < 4 ; ++i){
 		pre = controlGo;
@@ -62,7 +62,7 @@ int main(int argc, char const *argv[])
 		}
 	}
 	first->setNext(controlGo);
-//-----------------------------
+//----------------------------------------------------------
 	pthread_t threadId;
 	pthread_create(&threadId,&attr,calculate,NULL);
 
@@ -142,7 +142,7 @@ void* deal(void *param)
 	for ( ;  ; ){
 		
 		readyEventNums = epoll_wait(pthreadEpollFd,readyEvent,PTHREAD_EPOLL_SIZE,0);
-		write(STDOUT_FILENO,"ee",strlen("ee"));
+		//write(STDOUT_FILENO,"ee",strlen("ee"));
 		for (int i = 0; i < readyEventNums; ++i){
 			if (!(readyEvent[i].events & EPOLLIN)){			
 				continue;
@@ -156,7 +156,7 @@ void* deal(void *param)
 					bufFd[readLen] = '\0';
 					write(STDOUT_FILENO,bufFd,strlen(bufFd));
 					write(STDOUT_FILENO,"\n",strlen("\n"));
-					getNewClientArr(bufFd,arrFd,&arrNums);
+					getNewClientArr(bufFd,'_',arrFd,&arrNums);
 					for (int i = 0; i < arrNums; ++i)
 					{
 						cont->lock();
@@ -169,7 +169,6 @@ void* deal(void *param)
 			}
 		}
 		if ((sqlConn= mysqlPool::getInstance()->getConn()) != NULL ){
-			write(STDOUT_FILENO,"ww",strlen("ww"));
 			arrNums = 102400;
 			cont->lock();
 			cont->getArrFd(arrFd,&arrNums);
@@ -198,28 +197,37 @@ void* deal(void *param)
 	}
 
 }
-int getNewClientArr(char *buf,int *arrFd,int *arrNums)
+
+int getNewClientArr(const char *buf,const char sep,int *arrFd,int *arrNums)
 {
-	int i = 0;
-	char str[512 + 1];
-	sprintf(str,buf,strlen(buf));
-	char *p;
-	char *buff = str;
-	p = strsep(&buff,"_");
-	while(p){
-		arrFd[i] = atoi(p);
-		p = strsep(&buff,"_");
-		++i;
+	static char leaveBuf[10];
+	char allBuf[1024]={0};
+	strcat(allBuf,leaveBuf);
+	strcat(allBuf,buf);
+	int len = strlen(allBuf);
+	int i=0;
+	int j=0;
+	int k=0;
+	for(i;i<len;++i){
+		if(allBuf[i] == sep){
+			leaveBuf[j] = '\0';
+			arrFd[k] = atoi(leaveBuf);
+			++k;
+			j = 0;
+			continue;
+		}
+		leaveBuf[j] = allBuf[i];
+		++j;		
 	}
-	*arrNums = i;
-	return i;
+	leaveBuf[j] = '\0';
+	*arrNums = k;
+	return 0;
 }
+
 
 int sendMsg(int originFd,const char *msg,int msgLen)
 {
-	int sendLen = 0;
-	sendLen = send(originFd,msg,msgLen,0);
-	return sendLen;
+	return  send(originFd,msg,msgLen,0);
 }
 
 

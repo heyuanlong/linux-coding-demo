@@ -1,7 +1,7 @@
 #include "mysqlPool.h"
 
 mysqlPool* mysqlPool::mInstance		= NULL;
-int mysqlPool::nums					= 100;
+int mysqlPool::nums					= 4;
 std::string mysqlPool::smHost		= "localhost";
 std::string mysqlPool::smUser		= "root";
 std::string mysqlPool::smPassword	= "4hylWcHNJGp";
@@ -72,10 +72,28 @@ MYSQL* mysqlPool::getConn()
 		temp = NULL;
 	}else{
 		temp = mInList.front();
-		mInList.pop_front();
-		mOutList.push_front(temp);
+		mInList.pop_front();	
 	}
 	mLock.unlock();
+	if(temp != NULL){
+		if(mysql_ping(temp)){
+			if(mysql_init(temp) == NULL){
+				perror("mysql_init failed\n");
+				return NULL;
+			}
+			if (mysql_real_connect(temp,mysqlPool::smHost.c_str(),mysqlPool::smUser.c_str(),mysqlPool::smPassword.c_str(),mysqlPool::smDb.c_str(),0,NULL,0) == NULL){
+				perror("mysql_real_connect failed\n");
+				return NULL;
+			}
+			if(mysql_set_character_set(temp,"utf8") != 0){
+				perror("mysql_set_character_set failed\n");
+				return NULL;
+			}
+		}
+		mLock.lock();
+		mOutList.push_front(temp);
+		mLock.unlock();
+	}
 	return temp;
 }
 
