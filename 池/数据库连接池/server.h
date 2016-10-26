@@ -23,7 +23,7 @@
 #include "controlUnit.h"
 
 int socketinit(int port);
-int sendMsg(int originFd,char *msg,int msgLen);
+int sendMsg(int originFd,const char *msg,int msgLen);
 void* deal(void *param);
 void* calculate(void *param);
 void cond_sign(controlUnit *cont);

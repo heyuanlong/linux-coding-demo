@@ -7,7 +7,7 @@
 #include <unistd.h>
 
 #include <pthread.h>
-#include <deque>
+#include <list>
 #include "mysql.h"
 #include "mysqlPool.h"
 #include "mutex.h"
@@ -21,15 +21,19 @@ public:
 	int front();
 	void pop_front();
 	bool empty();
-	bool emptyNoLock();
 	void lock();
 	void unlock();
 	pthread_mutex_t * getMutex();
 	pthread_cond_t * getCond();
 	void setNext(controlUnit* n);
 	controlUnit * getNext();
+
+	int getReadPipe();
+	int getWritePipe();
+	int getArrFd(int *arrFd,int *arrNums);
 private:
-	std::deque<int> fdDeque;
+	int pipeFd[2];
+	std::list<int> fdList;
 	CommonMutex mutex;
 	pthread_cond_t haveProduct;
 	controlUnit* next;

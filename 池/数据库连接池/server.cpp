@@ -4,6 +4,7 @@
 
 #define MAXBUF 1500
 #define EPOLL_SIZE 2
+#define PTHREAD_EPOLL_SIZE 2
 
 int calculateNums = 0;
 int main(int argc, char const *argv[])
@@ -82,12 +83,9 @@ int main(int argc, char const *argv[])
 
 	int acceptClient = 0;
 	int readyEventNums = 0 ;
+	char bufFd[10];
 	for ( ;  ; ){
-		readyEventNums = epoll_wait(epollFd,readyEvent,EPOLL_SIZE,100);
-		if (readyEventNums == 0) //超时了
-		{
-			cond_sign(first);
-		}
+		readyEventNums = epoll_wait(epollFd,readyEvent,EPOLL_SIZE,0);
 		if(readyEventNums > 0)
 		{
 			if (!(readyEvent[0].events & EPOLLIN)){
@@ -100,8 +98,8 @@ int main(int argc, char const *argv[])
 				continue;
 			}	
 			controlGo = controlGo->getNext();
-			controlGo->push_back(acceptClient);
-			pthread_cond_signal(controlGo->getCond());
+			sprintf(bufFd,"%d_",acceptClient);
+			write(controlGo->getWritePipe(),bufFd,strlen(bufFd));
 		}else{
 			
 		}
@@ -114,8 +112,12 @@ int main(int argc, char const *argv[])
 void cond_sign(controlUnit *cont)
 {
 	controlUnit * first = cont;
+	bool b;
 	do{
-		if (!cont->empty()){
+		cont->lock();
+		b = cont->empty();
+		cont->unlock();
+		if (!b){
 			pthread_cond_signal(cont->getCond());
 		}
 		cont = cont->getNext();
@@ -129,41 +131,72 @@ void* deal(void *param)
 	MYSQL_RES *res = NULL;
 	MYSQL_ROW row;
 	char buf[100];
+	int readPipe = cont->getReadPipe();
 
-	while(1){
-		cont->lock();
-		while(cont->emptyNoLock() || (sqlConn= mysqlPool::getInstance()->getConn())== NULL ){
-			pthread_cond_wait(cont->getCond(),cont->getMutex());
-		}
-		cont->unlock();
-		int fd = cont->front();
-		cont->pop_front();
 
-		const char * query= "select gameID,productName from test.product_info";
-		int re = mysql_query(sqlConn,query);
-		if (re == 0){
-			res = mysql_store_result(sqlConn);
-			while(row = mysql_fetch_row(res)){
-				sprintf(buf,"gameID:%s,productName:%s\n",row[0],row[1]);
-				sendMsg(fd,buf,strlen(buf));
-			}			
-			mysql_free_result(res);
-		}
-		close(fd);
-		mysqlPool::getInstance()->recycConn(sqlConn);
-		++calculateNums;
-		
+	int pthreadEpollFd = epoll_create(PTHREAD_EPOLL_SIZE);
+	if(pthreadEpollFd == -1){
+		perror("pthreadEpollFd create");
+		return 0;
 	}
+	struct epoll_event pthreadEpollEvent,readyEvent[PTHREAD_EPOLL_SIZE];
+	pthreadEpollEvent.events = EPOLLIN;
+	pthreadEpollEvent.data.fd = readPipe;
+	if (epoll_ctl(pthreadEpollFd,EPOLL_CTL_ADD,readPipe,&pthreadEpollEvent) == -1){
+		perror("epoll add serversock");
+		return 0;
+	}
+
+	int readyEventNums = 0 ;
+	char bufFd[512];
+	int arrFd[102400];
+	int arrNums = 0;
+	for ( ;  ; ){
+		
+		readyEventNums = epoll_wait(pthreadEpollFd,readyEvent,PTHREAD_EPOLL_SIZE,0);
+		for (int i = 0; i < readyEventNums; ++i){
+			if (!(readyEvent[i].events & EPOLLIN)){
+				continue;
+			}
+
+			if (readyEvent[i].data.fd == readPipe)
+			{
+				//add client
+			}else{
+
+			}
+		}
+		if ((sqlConn= mysqlPool::getInstance()->getConn()) != NULL ){
+			arrNums = 102400;
+			cont->lock();
+			cont->getArrFd(arrFd,&arrNums);
+			cont->unlock();
+			for (int i = 0; i < arrNums; ++i)
+			{
+				const char * query= "select gameID,productName from test.product_info";
+				int re = mysql_query(sqlConn,query);
+				if (re == 0){
+					res = mysql_store_result(sqlConn);
+					while(row = mysql_fetch_row(res)){
+						sprintf(buf,"gameID:%s,productName:%s\n",row[0],row[1]);
+						if((sendMsg(fd,buf,strlen(buf)))<0){
+							//del client
+						}
+					}			
+					mysql_free_result(res);
+				}
+			}
+			mysqlPool::getInstance()->recycConn(sqlConn);
+		}	
+	}
+
 }
 
-int sendMsg(int originFd,char *msg,int msgLen)
+int sendMsg(int originFd,const char *msg,int msgLen)
 {
 	int sendLen = 0;
 	sendLen = send(originFd,msg,msgLen,0);
-	if(sendLen < 0){
-		perror("send");
-	}
-
+	return sendLen;
 }
 
 

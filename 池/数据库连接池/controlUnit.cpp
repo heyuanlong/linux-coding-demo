@@ -1,10 +1,18 @@
 #include "controlUnit.h"
 
 controlUnit::controlUnit()
-{}
+{
+	if ((pipe(pipeFd)) < 0) {
+		perror("pipe");
+		exit(0);
+	}
+}
 
 controlUnit::~controlUnit()
-{}
+{
+	close(pipeFd[0]);
+	close(pipeFd[1]);
+}
 
 
 void controlUnit::lock()
@@ -19,42 +27,28 @@ void controlUnit::unlock()
 
 void controlUnit::push_back(int fd)
 {
-	mutex.lock();
-	fdDeque.push_back(fd);
-	mutex.unlock();
+	fdList.push_back(fd);
 }
 
 int controlUnit::front()
 {
 	int temp = -1;
-	mutex.lock();
-	if (!fdDeque.empty()){
-		temp = fdDeque.front();
+	if (!fdList.empty()){
+		temp = fdList.front();
 	}
-	mutex.unlock();
 	return temp;
 }
 
 void controlUnit::pop_front()
 {
-	mutex.lock();
-	if (!fdDeque.empty()){
-		fdDeque.pop_front();
+	if (!fdList.empty()){
+		fdList.pop_front();
 	}
-	mutex.unlock();
 }
 
 bool controlUnit::empty()
 {
-	bool temp;
-	mutex.lock();
-	temp = fdDeque.empty();
-	mutex.unlock();
-	return temp;
-}
-bool controlUnit::emptyNoLock()
-{
-	return fdDeque.empty();
+	return fdList.empty();
 }
 
 pthread_mutex_t * controlUnit::getMutex()
@@ -75,4 +69,29 @@ void controlUnit::setNext(controlUnit* n)
 controlUnit * controlUnit::getNext()
 {
 	return next;
+}
+
+int controlUnit::getReadPipe()
+{
+	return pipeFd[0];
+}
+
+int controlUnit::getWritePipe()
+{
+	return pipeFd[1];
+}
+
+int controlUnit::getArrFd(int *arrFd,int *arrNums)
+{
+	std::list<int>::iterator b,e;
+	b = fdList->begin();
+	e = fdList->end();
+	for (int i = 0; b != e; ++b,++i){
+		if (i>= *arrNums){
+			break;
+		}
+		arrFd[i] = *b;
+	}
+	*arrNums = i + 1;
+	return fdList.size();
 }
