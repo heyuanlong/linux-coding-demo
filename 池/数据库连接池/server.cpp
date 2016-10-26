@@ -159,9 +159,19 @@ void* deal(void *param)
 				continue;
 			}
 
-			if (readyEvent[i].data.fd == readPipe)
-			{
-				//add client
+			if (readyEvent[i].data.fd == readPipe){
+
+				if( read(readPipe,bufFd,512) < 0){
+					perror("read");
+				}else{
+					getNewClientArr(bufFd,arrFd,&arrNums);
+					for (int i = 0; i < arrNums; ++i)
+					{
+						cont->lock();
+						cont->push_back(arrFd[i]);
+						cont->unlock();
+					}
+				}
 			}else{
 
 			}
@@ -179,17 +189,37 @@ void* deal(void *param)
 					res = mysql_store_result(sqlConn);
 					while(row = mysql_fetch_row(res)){
 						sprintf(buf,"gameID:%s,productName:%s\n",row[0],row[1]);
-						if((sendMsg(fd,buf,strlen(buf)))<0){
-							//del client
+						if((sendMsg(arrFd[i],buf,strlen(buf)))<0){
+							cont->lock();
+							cont->remove(arrFd[i]);
+							cont->unlock();
 						}
 					}			
 					mysql_free_result(res);
 				}
+				++calculateNums;
 			}
 			mysqlPool::getInstance()->recycConn(sqlConn);
+
 		}	
 	}
 
+}
+int getNewClientArr(char *buf,int *arrFd,int *arrNums)
+{
+	int i = 0;
+	char str[512];
+	sprintf(str,buf,strlen(buf));
+	char *p;
+	char *buff = str;
+	p = strsep(&buff,"_");
+	while(p){
+		arrFd[i] = atoi(p);
+		p = strsep(&buff,"_");
+		++i;
+	}
+	*arrNums = i;
+	return i;
 }
 
 int sendMsg(int originFd,const char *msg,int msgLen)
@@ -212,6 +242,10 @@ int socketinit(int port)
 	serverAddr.sin_family = AF_INET;
 	serverAddr.sin_port = htons(port);
 	serverAddr.sin_addr.s_addr  = htonl(INADDR_ANY);
+	int flag=1;
+	if (setsockopt(tempSock,SOL_SOCKET,SO_REUSEADDR,&flag,sizeof(flag)) < 0){
+		perror("setsockopt");
+	}
 
 	if(bind(tempSock,(struct sockaddr *)&serverAddr,sizeof(struct sockaddr)) == -1){
 		perror("bind");

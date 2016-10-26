@@ -7,6 +7,7 @@ OBJSERVE=mysqlPool.o controlUnit.o server.o
 OBJCLIENT=client.o
 
 CFLAGS=-I/usr/include/mysql -L/usr/lib64/mysql -lmysqlclient
+CLIENT_CFLAGS= -lpthread
 
 
 #------------------------------------------------------------
@@ -18,7 +19,7 @@ $(SERVE):   $(OBJSERVE)
 	$(CC) $(CFLAGS) -o $(SERVE) $(OBJSERVE)
         
 $(CLIENT):   $(OBJCLIENT)
-	$(CC)  -o $(CLIENT) $(OBJCLIENT)
+	$(CC) $(CLIENT_CFLAGS) -o $(CLIENT) $(OBJCLIENT)
         
 
 $(OBJSERVE): %.o:  %.cpp %.h

@@ -2,13 +2,14 @@
 #include "client.h"
 #include <time.h>
 
-#define MAXBUF 1500
+#define MAXBUF 150
+char ip[32] = {0};
+int port;
 
-
+void * deal(void *param);
 int main(int argc, char const *argv[])
 {
-	char ip[32] = {0};
-	int port;
+
 	char buf[MAXBUF];
 	int sockLink = -1;
 
@@ -20,29 +21,53 @@ int main(int argc, char const *argv[])
 	strcpy(ip,argv[1]);
 	port  = atoi(argv[2]);
 
-	for(;;){
-		sockLink = connectServer(ip,port);
-		if (sockLink == -1 ){
-			return 0;
-		}
-		for(;;){
-			int recvLen = recv(sockLink,buf,MAXBUF-1,0);
-			if(recvLen > 0){
-				write(STDOUT_FILENO,buf,recvLen);
-			}else if (recvLen == 0){
-				
-				printf("client is close");
-				break;
-			}else{
-				perror("client have error");
-				return 0;
-			}
-		}
-		close(sockLink);
+	pthread_attr_t attr;
+	if (pthread_attr_init(&attr)){
+		perror("pthread_attr_init");
+		return 0;
 	}
+	if (pthread_attr_setdetachstate(&attr,PTHREAD_CREATE_DETACHED)){
+		perror("pthread_attr_setdetachstate");
+		return 0;
+	}
+
+	for ( int i= 0; i < 1000 ; ++i){
+		pthread_t threadId;
+		int preturn;
+		preturn = pthread_create(&threadId,&attr,deal,NULL);
+		if (preturn != 0){
+			perror("pthread_create");
+			continue;
+		}
+	}
+	read(STDOUT_FILENO,buf,MAXBUF);
+
 	return 0;
 }
 
+
+void * deal(void *param)
+{
+	char buf[MAXBUF];
+	int sockLink = connectServer(ip,port);
+	if (sockLink == -1 ){
+		return 0;
+	}
+	for(;;){
+		int recvLen = recv(sockLink,buf,MAXBUF-1,0);
+		if(recvLen > 0){
+			write(STDOUT_FILENO,buf,recvLen);
+		}else if (recvLen == 0){
+			
+			printf("client is close");
+			break;
+		}else{
+			perror("client have error");
+			return 0;
+		}
+	}
+	close(sockLink);
+}
 
 int connectServer(char *ip,int port)
 {

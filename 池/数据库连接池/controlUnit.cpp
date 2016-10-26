@@ -29,21 +29,9 @@ void controlUnit::push_back(int fd)
 {
 	fdList.push_back(fd);
 }
-
-int controlUnit::front()
+void controlUnit::remove(int fd)
 {
-	int temp = -1;
-	if (!fdList.empty()){
-		temp = fdList.front();
-	}
-	return temp;
-}
-
-void controlUnit::pop_front()
-{
-	if (!fdList.empty()){
-		fdList.pop_front();
-	}
+	fdList.remove(fd);
 }
 
 bool controlUnit::empty()
@@ -84,9 +72,10 @@ int controlUnit::getWritePipe()
 int controlUnit::getArrFd(int *arrFd,int *arrNums)
 {
 	std::list<int>::iterator b,e;
-	b = fdList->begin();
-	e = fdList->end();
-	for (int i = 0; b != e; ++b,++i){
+	b = fdList.begin();
+	e = fdList.end();
+	int i = 0;
+	for ( ;b != e; ++b,++i){
 		if (i>= *arrNums){
 			break;
 		}

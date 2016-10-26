@@ -18,8 +18,8 @@ public:
 	controlUnit();
 	~controlUnit();
 	void push_back(int fd);
-	int front();
-	void pop_front();
+	void remove(int fd);
+
 	bool empty();
 	void lock();
 	void unlock();

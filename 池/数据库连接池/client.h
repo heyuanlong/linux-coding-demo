@@ -1,5 +1,5 @@
-#ifndef __CLIENT__
-#define __CLIENT__
+#ifndef __CLIENT_H_
+#define __CLIENT_H_
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,6 +13,8 @@
 #include <sys/stat.h>
 #include <errno.h>
 
+
+#include <pthread.h>
 
 int connectServer(char *ip,int port);
 
