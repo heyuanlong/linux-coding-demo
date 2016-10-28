@@ -2,6 +2,8 @@
 
 
 #define PRENUMS 100
+#define DOUBLENUMS 5
+#define BIGGERNUMS 2
 #define MALLOCFAIL -9
 
 static slot *slotArr = NULL;
@@ -15,6 +17,7 @@ int quickSort(slot *R,int s,int t);
 int removeRepeat(slot *R,int *nums);
 int mallocBlock(slot *R,int nums);
 int Search(slot *R,int nums,int size);
+int biggerMalloc(slot *sr,int nums,char add);
 
 int initHMemoryPool(initStruct* arr,int nums)
 {
@@ -36,9 +39,10 @@ int initHMemoryPool(initStruct* arr,int nums)
 	for ( i = 0; i < nums; ++i)
 	{
 		slotArr[i].blockSize = arr[i].size;
+		slotArr[k].pFree = NULL;
 		slotArr[i].freeNums = arr[i].nums;
 		slotArr[i].allNums = arr[i].nums;
-		slotArr[i].maxNums = arr[i].nums;
+		slotArr[i].maxNums = arr[i].nums * DOUBLENUMS;
 	}
 	slotArrCurrentNums = nums;
 	
@@ -54,9 +58,10 @@ int initHMemoryPool(initStruct* arr,int nums)
 		}
 		if (j == slotArrCurrentNums){
 			slotArr[k].blockSize = preSizeArr[i].size;
+			slotArr[k].pFree = NULL;
 			slotArr[k].freeNums = preSizeArr[i].nums;
 			slotArr[k].allNums = preSizeArr[i].nums;
-			slotArr[k].maxNums = preSizeArr[i].nums;
+			slotArr[k].maxNums = preSizeArr[i].nums * DOUBLENUMS;
 			++k;
 		}
 	}
@@ -83,25 +88,43 @@ void* getHMemory(int size,int *status)
 	int searchRes;
 	void *res = NULL;
 	blockHead *temp = NULL;
+	int mNums;
 	int headSize = sizeof(blockHead);
+
 	searchRes = Search(slotArr,slotArrCurrentNums,size);
 	if(searchRes == slotArrCurrentNums){
-		*status = 2;
+		*status = -2;
 		temp =(blockHead *)malloc(headSize + size);
 		temp->size = size;
+		temp->inPool = '0';
 		res = (void*)(temp) + headSize;
 	}else{
-		if (slotArr[searchRes].free != NULL)
-		{		
+		if (slotArr[searchRes].pFree == NULL){
+			if (slotArr[searchRes].maxNums > slotArr[searchRes].allNums){
+				mNums = slotArr[searchRes].allNums * BIGGERNUMS;
+				if ( (mNums + slotArr[searchRes].allNums) > slotArr[searchRes].maxNums){
+					mNums = slotArr[searchRes].maxNums - slotArr[searchRes].allNums;
+				}
+				if(biggerMalloc(slotArr + searchRes,mNums,'1') == MALLOCFAIL){
+					*status = MALLOCFAIL;
+					return NULL;
+				} 
+			}			
+		}
+
+		if (slotArr[searchRes].pFree == NULL){		
+			*status = -1;
+			temp =(blockHead *)malloc(headSize + size);
+			temp->size = size;
+			temp->inPool = '0';
+			res = (void*)(temp) + headSize;
+		}else{	
 			*status = 0;
-			res = slotArr[searchRes].free;
+			res = slotArr[searchRes].pFree;
 
 			temp = (blockHead *)(res - headSize);
-			slotArr[searchRes].free = temp->next;
+			slotArr[searchRes].pFree = temp->next;
 			--slotArr[searchRes].freeNums;
-		}else{
-			*status = -1;
-			res =  NULL;
 		}	
 	}
 	return res;
@@ -114,20 +137,26 @@ int freeHMemory(void *p)
 	int headSize = sizeof(blockHead);
 	blockHead *temp = (blockHead *)(p - headSize);
 	int size = temp->size;
-	
-	searchRes = Search(slotArr,slotArrCurrentNums,size);
-	if(searchRes == slotArrCurrentNums){
+	char tempInPool = temp->inPool;
+	if (tempInPool == '0'){
 		free(p-headSize);
 	}else{
-		temp->next = slotArr[searchRes].free;
-		slotArr[searchRes].free = p;
-		++slotArr[searchRes].freeNums;
+		searchRes = Search(slotArr,slotArrCurrentNums,size);
+		if(searchRes == slotArrCurrentNums){
+			//理论上不会执行到这里
+		}else{
+			temp->next = slotArr[searchRes].pFree;
+			slotArr[searchRes].pFree = p;
+			++slotArr[searchRes].freeNums;
+		}
 	}
 }
 
 int setHMemoryNums(int size,int maxNums)
 {
-
+	//存在这个size了
+		//
+	//不存在这个size
 }
 
 
@@ -220,30 +249,11 @@ int mallocBlock(slot *R,int nums)
 	for (i = 0; i < nums; ++i)
 	{
 		if(R[i].allNums <= 0 ){
-			R[i].free = NULL;
-
+			continue;
 		}else{			
-			justBlockSize = R[i].blockSize;
-			allBlockSize = headSize + justBlockSize;
-			head = malloc( allBlockSize * R[i].allNums );
-			if(head == NULL){
+			if(biggerMalloc(R + i,R[i].allNums,'0') == MALLOCFAIL){
 				return MALLOCFAIL;
-			}
-			R[i].free = head + headSize;
-
-			temp = head;
-			for ( j = 0; j < R[i].allNums; ++j)
-			{
-				headTemp = (blockHead*)temp;
-				headTemp->size = R[i].blockSize;
-				if (j == (R[i].allNums - 1) ){					
-					headTemp->next = NULL;
-				}else{
-					headTemp->next = temp + allBlockSize + headSize;
-				}
-				temp += allBlockSize;
- 			}
-
+			} 
 		}
 	}
 }
@@ -258,4 +268,42 @@ int Search(slot *R,int nums,int size)
 		}
 	}
 	return nums;
+}
+
+int biggerMalloc(slot *sr,int nums,char add)
+{	
+	int headSize,justBlockSize,allBlockSize;
+	void *head,*temp,*slotpFree;
+	blockHead *headTemp;
+	int j;
+
+	headSize = sizeof(blockHead);
+	justBlockSize = sr->blockSize;
+	allBlockSize = headSize + justBlockSize;
+
+	head = malloc( allBlockSize * nums );
+	if(head == NULL){
+		return MALLOCFAIL;
+	}
+	slotpFree = sr->pFree;
+	sr->pFree = head + headSize;
+	if (add == '1'){
+		sr->freeNums += nums;
+		sr->allNums += nums;
+	}
+	temp = head;
+	for ( j = 0; j < nums; ++j)
+	{
+		headTemp = (blockHead*)temp;
+		headTemp->size = sr->blockSize;
+		headTemp->inPool = '1';
+		if (j == (nums - 1) ){					
+			headTemp->next = slotpFree;
+		}else{
+			headTemp->next = temp + allBlockSize + headSize;
+		}
+		temp += allBlockSize;
+	}
+
+	return 0;
 }

@@ -10,6 +10,7 @@ typedef struct blockHead blockHead;
 struct blockHead
 {
 	int size;
+	char inPool;
 	void *next;
 };
 
@@ -17,7 +18,7 @@ struct blockHead
 typedef struct slot slot;
 struct slot
 {
-	void *free;
+	void *pFree;
 	int blockSize;
 	int freeNums;
 	int allNums;

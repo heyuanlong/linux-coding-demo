@@ -13,32 +13,26 @@ int main(int argc, char const *argv[])
 	void *temp;
 
 	initHMemoryPool(preSizeArr,preNums);
+
+	write(STDOUT_FILENO,"\n",strlen("\n"));
 	printHMemory(STDOUT_FILENO);
-	for ( i = 0; i < 20; ++i)
+
+	void *tempArr[100000];
+	int tempNums=0;
+	for ( i = 0; i < 26000; ++i)
 	{
-		temp = getHMemory(19,&status);
-		freeHMemory(temp);
+		tempArr[i] = getHMemory(19,&status);
+		tempNums = i + 1;
 	}
-	for ( i = 0; i < 20; ++i)
+
+	write(STDOUT_FILENO,"\n",strlen("\n"));
+	printHMemory(STDOUT_FILENO);
+
+	for ( i = 0; i < tempNums; ++i)
 	{
-		temp = getHMemory(34,&status);
-		freeHMemory(temp);
+		freeHMemory(tempArr[i]);
 	}
-	for ( i = 0; i < 20; ++i)
-	{
-		temp = getHMemory(50,&status);
-		freeHMemory(temp);
-	}
-	for ( i = 0; i < 20; ++i)
-	{
-		temp = getHMemory(88,&status);
-		freeHMemory(temp);
-	}
-	for ( i = 0; i < 20; ++i)
-	{
-		temp = getHMemory(121,&status);
-		freeHMemory(temp);
-	}
+
 	write(STDOUT_FILENO,"\n",strlen("\n"));
 	printHMemory(STDOUT_FILENO);
 
