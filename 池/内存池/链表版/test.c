@@ -32,10 +32,24 @@ int main(int argc, char const *argv[])
 	{
 		freeHMemory(tempArr[i]);
 	}
+	write(STDOUT_FILENO,"\n",strlen("\n"));
+	printHMemory(STDOUT_FILENO);
+	
+	setHMemoryNums(120,10001);
+	write(STDOUT_FILENO,"\n",strlen("\n"));
+	printHMemory(STDOUT_FILENO);
+	
+	setHMemoryNums(100,5000);
+	write(STDOUT_FILENO,"\n",strlen("\n"));
+	printHMemory(STDOUT_FILENO);
+	
+	for ( i = 0; i < 100; ++i)
+	{
+		setHMemoryNums(i,100);
+	}
 
 	write(STDOUT_FILENO,"\n",strlen("\n"));
 	printHMemory(STDOUT_FILENO);
-
 
 	read(STDIN_FILENO,buf,sizeof(buf));
 	return 0;

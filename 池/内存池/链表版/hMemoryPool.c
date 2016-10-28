@@ -18,6 +18,7 @@ int removeRepeat(slot *R,int *nums);
 int mallocBlock(slot *R,int nums);
 int Search(slot *R,int nums,int size);
 int biggerMalloc(slot *sr,int nums,char add);
+int resetSlotArr();
 
 int initHMemoryPool(initStruct* arr,int nums)
 {
@@ -152,11 +153,75 @@ int freeHMemory(void *p)
 	}
 }
 
+int resetSlotArr()
+{
+	int tempAllNums;
+	slot *tempSlotArr;
+	int i;
+
+	tempAllNums = slotArrCurrentNums * 2 ;
+	tempSlotArr = (slot*)malloc(sizeof(slot) * tempAllNums);
+	if (tempSlotArr == NULL){
+		return MALLOCFAIL;
+	}
+	for (i = 0; i < slotArrCurrentNums; ++i)
+	{
+		tempSlotArr[i] = slotArr[i];
+	}
+	slotArr = tempSlotArr;
+	slotArrAllNums = tempAllNums;
+	return 0;
+}
+
 int setHMemoryNums(int size,int maxNums)
 {
-	//存在这个size了
-		//
-	//不存在这个size
+	int i;
+	int j;
+	int tempRes;
+	slot temp;
+
+	if(size <=0 || maxNums <= 0){
+		return 0;
+	}
+
+	if(slotArrCurrentNums == slotArrAllNums){
+		if( (tempRes = resetSlotArr()) != 0){
+			return tempRes;
+		}
+	}
+
+	for ( i = 0; i < slotArrCurrentNums; ++i)
+	{
+		if(slotArr[i].blockSize >= size ){
+			break;
+		}
+	}
+	if(i < slotArrCurrentNums){//小于最大的size，则测试有没有同样大小的size
+		if (slotArr[i].blockSize == size){ 
+			if (maxNums > slotArr[i].maxNums){
+				slotArr[i].maxNums = maxNums;				
+			}
+			return 0;
+		}
+	}
+
+	temp.pFree = NULL;
+	temp.blockSize = size;
+	temp.freeNums = 0;
+	temp.allNums = 0;
+	temp.maxNums = maxNums * DOUBLENUMS;	
+	if(biggerMalloc(&temp,maxNums,'1') == MALLOCFAIL){
+		return -1;
+	}
+
+	for ( j = slotArrCurrentNums-1 ; j >= i ; --j)
+	{
+		slotArr[ j+1 ] = slotArr[ j ];
+	}
+	slotArr[i] = temp;
+	++slotArrCurrentNums;
+
+	return 0;
 }
 
 
