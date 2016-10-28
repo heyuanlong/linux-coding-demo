@@ -7,7 +7,7 @@
 
 int main(int argc, char const *argv[])
 {
-	initStruct preSizeArr[] = {{40,20000},{60,4000},{88,3000},{120,2000}};
+	initStruct preSizeArr[] = {{40,2000},{60,400},{88,300},{120,200}};
 	int preNums = sizeof(preSizeArr) / sizeof(initStruct);
 	int i,j,status;
 	char buf[100];
@@ -23,7 +23,7 @@ int main(int argc, char const *argv[])
 	write(STDOUT_FILENO,"\n",strlen("\n"));
 	printHMemory(STDOUT_FILENO);
 
-	void *tempArr[1000000];
+	void *tempArr[26000];
 	int tempNums=0;
 	for ( i = 0; i < 26000; ++i)
 	{
@@ -38,7 +38,7 @@ int main(int argc, char const *argv[])
 	{
 		freeHMemory(tempArr[i]);
 	}
-	write(STDOUT_FILENO,"\n",strlen("\n"));
+/*	write(STDOUT_FILENO,"\n",strlen("\n"));
 	printHMemory(STDOUT_FILENO);
 	
 	setHMemoryNums(120,10000);
@@ -52,21 +52,21 @@ int main(int argc, char const *argv[])
 	for ( i = 0; i < 100; ++i)
 	{
 		setHMemoryNums(i,100);
-	}
+	}*/
 
 	write(STDOUT_FILENO,"\n",strlen("\n"));
 	printHMemory(STDOUT_FILENO);
 
 
-	setHMemoryNums(40,10000);
-
+	//以下测试要求机子的内存够大
+	setHMemoryNums(20,10000);
 	time(&timep);
 	printf("time(): %d\n",timep);
-	for ( j = 0; j < 10; ++j)
+	for ( j = 0; j < 9000; ++j)
 	{
 		for ( i = 0; i < 10000; ++i)
 		{
-			tempArr[i] = getHMemory(40,&status);
+			tempArr[i] = getHMemory(20,&status);
 			tempNums = i + 1;
 		}
 		for ( i = 0; i < tempNums; ++i)
@@ -78,16 +78,16 @@ int main(int argc, char const *argv[])
 	time(&timep);
 	printf("time(): %d\n",timep);
 
-	for ( j = 0; j < 10; ++j)
+	for ( j = 0; j < 9000; ++j)
 		{
 		for ( i = 0; i < 10000; ++i)
 		{
-			tempArr[i] = malloc(40);
+			tempArr[i] = malloc(20);
 			tempNums = i + 1;
 		}
 		for ( i = 0; i < tempNums; ++i)
 		{
-			freeHMemory(tempArr[i]);
+			free(tempArr[i]);
 		}
 	}
 	time(&timep);
