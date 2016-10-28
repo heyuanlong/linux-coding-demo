@@ -12,7 +12,7 @@ CFLAGS=
 
 all:    $(SERVE) 
 
-$(SERVE):   $(OBJSERVE)
+$(SERVE):   $(OBJSERVE) test.c
 	$(CC) $(CFLAGS) -o $(SERVE) $(OBJSERVE) test.c
 
 

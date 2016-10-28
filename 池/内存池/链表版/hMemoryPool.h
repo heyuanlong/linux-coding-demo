@@ -33,10 +33,9 @@ struct initStruct
 
 
 int initHMemoryPool(initStruct* arr,int nums);
-void* getHMemory(int size,int status);
+void* getHMemory(int size,int *status);
 int freeHMemory(void *p);
 int setHMemoryNums(int size,int maxNums);
-int setHMemoryMaxSize(int maxSize);
 int printHMemory(int fd);
 
 

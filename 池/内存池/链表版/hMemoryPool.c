@@ -2,7 +2,7 @@
 
 
 #define PRENUMS 100
-#define MALLOCFAIL -1
+#define MALLOCFAIL -9
 
 static slot *slotArr = NULL;
 static int slotArrCurrentNums = 0;
@@ -14,7 +14,7 @@ static initStruct preSizeArr[] = {{20,5000},{30,5000},{40,5000},{50,5000}} ;
 int quickSort(slot *R,int s,int t);
 int removeRepeat(slot *R,int *nums);
 int mallocBlock(slot *R,int nums);
-
+int Search(slot *R,int nums,int size);
 
 int initHMemoryPool(initStruct* arr,int nums)
 {
@@ -75,17 +75,54 @@ int initHMemoryPool(initStruct* arr,int nums)
 	if( (returnRes = mallocBlock(slotArr,slotArrCurrentNums)) != 0 ){
 		return returnRes;
 	}
-
+	return 0;
 }
 
-void* getHMemory(int size,int status)
+void* getHMemory(int size,int *status)
 {
+	int searchRes;
+	void *res = NULL;
+	blockHead *temp = NULL;
+	int headSize = sizeof(blockHead);
+	searchRes = Search(slotArr,slotArrCurrentNums,size);
+	if(searchRes == slotArrCurrentNums){
+		*status = 2;
+		temp =(blockHead *)malloc(headSize + size);
+		temp->size = size;
+		res = (void*)(temp) + headSize;
+	}else{
+		if (slotArr[searchRes].free != NULL)
+		{		
+			*status = 0;
+			res = slotArr[searchRes].free;
 
+			temp = (blockHead *)(res - headSize);
+			slotArr[searchRes].free = temp->next;
+			--slotArr[searchRes].freeNums;
+		}else{
+			*status = -1;
+			res =  NULL;
+		}	
+	}
+	return res;
 }
 
 int freeHMemory(void *p)
 {
-
+	int res;
+	int searchRes;
+	int headSize = sizeof(blockHead);
+	blockHead *temp = (blockHead *)(p - headSize);
+	int size = temp->size;
+	
+	searchRes = Search(slotArr,slotArrCurrentNums,size);
+	if(searchRes == slotArrCurrentNums){
+		free(p-headSize);
+	}else{
+		temp->next = slotArr[searchRes].free;
+		slotArr[searchRes].free = p;
+		++slotArr[searchRes].freeNums;
+	}
 }
 
 int setHMemoryNums(int size,int maxNums)
@@ -93,10 +130,6 @@ int setHMemoryNums(int size,int maxNums)
 
 }
 
-int setHMemoryMaxSize(int maxSize)
-{
-
-}
 
 int printHMemory(int fd)
 {
@@ -213,4 +246,16 @@ int mallocBlock(slot *R,int nums)
 
 		}
 	}
+}
+
+int Search(slot *R,int nums,int size)
+{
+	int i;
+	for ( i = 0; i < nums; ++i)
+	{
+		if ( size <= R[i].blockSize){
+			return i;
+		}
+	}
+	return nums;
 }
