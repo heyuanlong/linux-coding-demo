@@ -13,12 +13,11 @@ static initStruct preSizeArr[] = {{20,5000},{30,5000},{40,5000},{50,5000}} ;
 
 
 //内部使用的函数
-int quickSort(slot *R,int s,int t);
-int removeRepeat(slot *R,int *nums);
-int mallocBlock(slot *R,int nums);
-int Search(slot *R,int nums,int size);
-int biggerMalloc(slot *sr,int nums,char add);
-int resetSlotArr();
+int quickSort(slot *R,int s,int t);					//快速排序
+int removeRepeat(slot *R,int *nums);				//去重以及去掉blockSize<=0的
+int Search(slot *R,int nums,int size);				//查找size的索引位置
+int biggerMalloc(slot *sr,int nums,char add);		//给单个slot分配block
+int resetSlotArr();									//重置slot数组
 
 int initHMemoryPool(initStruct* arr,int nums)
 {
@@ -77,10 +76,18 @@ int initHMemoryPool(initStruct* arr,int nums)
 		return returnRes;
 	}
 
-//分配空间
-	if( (returnRes = mallocBlock(slotArr,slotArrCurrentNums)) != 0 ){
-		return returnRes;
+//分配slot数组的block
+	for (i = 0; i < slotArrCurrentNums; ++i)
+	{
+		if(slotArr[i].allNums <= 0 ){
+			continue;
+		}else{			
+			if(biggerMalloc(slotArr + i,slotArr[i].allNums,'0') == MALLOCFAIL){
+				return MALLOCFAIL;
+			} 
+		}
 	}
+
 	return 0;
 }
 
@@ -93,33 +100,33 @@ void* getHMemory(int size,int *status)
 	int headSize = sizeof(blockHead);
 
 	searchRes = Search(slotArr,slotArrCurrentNums,size);
-	if(searchRes == slotArrCurrentNums){
+	if(searchRes == slotArrCurrentNums){				//size过大
 		*status = -2;
 		temp =(blockHead *)malloc(headSize + size);
 		temp->size = size;
-		temp->inPool = '0';
+		temp->inPool = '0';								//非池中之物
 		res = (void*)(temp) + headSize;
-	}else{
-		if (slotArr[searchRes].pFree == NULL){
-			if (slotArr[searchRes].maxNums > slotArr[searchRes].allNums){
+	}else{												
+		if (slotArr[searchRes].pFree == NULL){									//没有空余的block了，试图分配
+			if (slotArr[searchRes].maxNums > slotArr[searchRes].allNums){		//可以继续分配block
 				mNums = slotArr[searchRes].allNums * BIGGERNUMS;
 				if ( (mNums + slotArr[searchRes].allNums) > slotArr[searchRes].maxNums){
 					mNums = slotArr[searchRes].maxNums - slotArr[searchRes].allNums;
 				}
-				if(biggerMalloc(slotArr + searchRes,mNums,'1') == MALLOCFAIL){
+				if(biggerMalloc(slotArr + searchRes,mNums,'1') == MALLOCFAIL){		
 					*status = MALLOCFAIL;
 					return NULL;
 				} 
 			}			
 		}
 
-		if (slotArr[searchRes].pFree == NULL){		
+		if (slotArr[searchRes].pFree == NULL){			//没有空余的block了
 			*status = -1;
 			temp =(blockHead *)malloc(headSize + size);
 			temp->size = size;
-			temp->inPool = '0';
+			temp->inPool = '0';							//非池中之物
 			res = (void*)(temp) + headSize;
-		}else{	
+		}else{											//还有空余的block
 			*status = 0;
 			res = slotArr[searchRes].pFree;
 
@@ -139,12 +146,12 @@ int freeHMemory(void *p)
 	blockHead *temp = (blockHead *)(p - headSize);
 	int size = temp->size;
 	char tempInPool = temp->inPool;
-	if (tempInPool == '0'){
+	if (tempInPool == '0'){		//不在池里的
 		free(p-headSize);
 	}else{
 		searchRes = Search(slotArr,slotArrCurrentNums,size);
 		if(searchRes == slotArrCurrentNums){
-			//理论上不会执行到这里
+								//理论上不会执行到这里，因为过大的size不会在池里
 		}else{
 			temp->next = slotArr[searchRes].pFree;
 			slotArr[searchRes].pFree = p;
@@ -159,7 +166,7 @@ int resetSlotArr()
 	slot *tempSlotArr;
 	int i;
 
-	tempAllNums = slotArrCurrentNums * 2 ;
+	tempAllNums = slotArrCurrentNums * 2 ;	//slot数组变为原来的2倍
 	tempSlotArr = (slot*)malloc(sizeof(slot) * tempAllNums);
 	if (tempSlotArr == NULL){
 		return MALLOCFAIL;
@@ -184,19 +191,19 @@ int setHMemoryNums(int size,int maxNums)
 		return 0;
 	}
 
-	if(slotArrCurrentNums == slotArrAllNums){
+	if(slotArrCurrentNums == slotArrAllNums){		//slot数组不够长了，加长。
 		if( (tempRes = resetSlotArr()) != 0){
 			return tempRes;
 		}
 	}
 
-	for ( i = 0; i < slotArrCurrentNums; ++i)
+	for ( i = 0; i < slotArrCurrentNums; ++i)		//找到此size的在哪个索引之间
 	{
 		if(slotArr[i].blockSize >= size ){
 			break;
 		}
 	}
-	if(i < slotArrCurrentNums){//小于最大的size，则测试有没有同样大小的size
+	if(i < slotArrCurrentNums){						//小于最大的blockSize，则测试有没有同样大小的size
 		if (slotArr[i].blockSize == size){ 
 			if (maxNums > slotArr[i].maxNums){
 				slotArr[i].maxNums = maxNums;				
@@ -205,7 +212,7 @@ int setHMemoryNums(int size,int maxNums)
 		}
 	}
 
-	temp.pFree = NULL;
+	temp.pFree = NULL;								//给新的blockSize分配slot和block
 	temp.blockSize = size;
 	temp.freeNums = 0;
 	temp.allNums = 0;
@@ -214,12 +221,12 @@ int setHMemoryNums(int size,int maxNums)
 		return -1;
 	}
 
-	for ( j = slotArrCurrentNums-1 ; j >= i ; --j)
+	for ( j = slotArrCurrentNums-1 ; j >= i ; --j)	//把新的slot加入到slot数组里
 	{
 		slotArr[ j+1 ] = slotArr[ j ];
 	}
 	slotArr[i] = temp;
-	++slotArrCurrentNums;
+	++slotArrCurrentNums;							//当然别忘记了slotArrCurrentNums加一
 
 	return 0;
 }
@@ -279,13 +286,13 @@ int removeRepeat(slot *R,int *nums)
 	pre = 0;
 	next = 1;
 
-	temp[pre]= '0';//true为要去掉的
+	temp[pre]= '0';							//'0'为要去掉的
 	if (R[pre].blockSize <=0 ){
 		temp[pre] = '1';
 	}
 	for (; next < *nums; ++pre, ++next)
 	{
-		if(R[pre].blockSize == R[next].blockSize || R[next].blockSize <= 0){
+		if(R[pre].blockSize == R[next].blockSize || R[next].blockSize <= 0){  //去重以及去掉blockSize<=0的
 			temp[next] = '1';
 		}else{
 			temp[next] = '0';
@@ -303,25 +310,7 @@ int removeRepeat(slot *R,int *nums)
 	return 0;
 }
 
-int mallocBlock(slot *R,int nums)
-{
-	int i,j;
-	void *head,*temp;
-	blockHead *headTemp;
-	int headSize,justBlockSize,allBlockSize;
-	headSize = sizeof(blockHead);
 
-	for (i = 0; i < nums; ++i)
-	{
-		if(R[i].allNums <= 0 ){
-			continue;
-		}else{			
-			if(biggerMalloc(R + i,R[i].allNums,'0') == MALLOCFAIL){
-				return MALLOCFAIL;
-			} 
-		}
-	}
-}
 
 int Search(slot *R,int nums,int size)
 {
@@ -351,8 +340,8 @@ int biggerMalloc(slot *sr,int nums,char add)
 		return MALLOCFAIL;
 	}
 	slotpFree = sr->pFree;
-	sr->pFree = head + headSize;
-	if (add == '1'){
+	sr->pFree = head + headSize;		//加入到block链表的头部
+	if (add == '1'){					//是否为新增，而非初始化
 		sr->freeNums += nums;
 		sr->allNums += nums;
 	}
@@ -361,7 +350,7 @@ int biggerMalloc(slot *sr,int nums,char add)
 	{
 		headTemp = (blockHead*)temp;
 		headTemp->size = sr->blockSize;
-		headTemp->inPool = '1';
+		headTemp->inPool = '1';			//池中之物
 		if (j == (nums - 1) ){					
 			headTemp->next = slotpFree;
 		}else{
