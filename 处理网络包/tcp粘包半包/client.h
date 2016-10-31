@@ -1,5 +1,5 @@
-#ifndef __CLIENT__
-#define __CLIENT__
+#ifndef __CLIENT_H_
+#define __CLIENT_H_
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,15 +14,23 @@
 #include <errno.h>
 
 
-#include <sys/epoll.h>
-
+#include <pthread.h>
 
 int connectServer(char *ip,int port);
 
+void * deal(void *param);
+int getBuf(char *buf,int *bufLen,int *type);
+
+int getBufLogin(char *buf,int *bufLen);
+int getBufReady(char *buf,int *bufLen);
+int getBufMsg(char *buf,int *bufLen);
+int getBufLeave(char *buf,int *bufLen);
 
 
-
-
+#define LOGIN  	0
+#define READY  	1
+#define MSG  	2
+#define LEAVE  	3
 
 
 
