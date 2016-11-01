@@ -7,7 +7,7 @@ OBJSERVE=us.o
 OBJCLIENT=uc.o
 
 CFLAGS=
-
+LDFLAGS=-lpthread
 
 #------------------------------------------------------------
 .PHONY: all

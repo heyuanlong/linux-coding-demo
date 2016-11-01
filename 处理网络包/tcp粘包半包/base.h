@@ -2,6 +2,12 @@
 #define __BASE__
 
 
+#define LOGIN  	1001
+#define READY  	1002
+#define MSG  	1003
+#define LEAVE  	1004
+
+
 typedef struct head_s head_t;
 struct head_s
 {

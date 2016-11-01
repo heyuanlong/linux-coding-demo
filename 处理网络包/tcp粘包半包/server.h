@@ -15,11 +15,31 @@
 
 
 #include <sys/epoll.h>
-#include <list>
+#include <map>
+
+typedef struct fdBuf_s fdBuf_t;
+struct fdBuf_s
+{
+	int fd;
+	char *buf;
+	char *bufPoint;
+	int bufLen;
+	int maxLen;
+};
+
+
+
 
 int socketinit(int port);
-int sendMsg(std::list<int> *li,int originFd,char *msg,int msgLen);
+int dealBuf(fdBuf_t * fdBuf);
 
-int addList(std::list<int> *li,int fd);
-int removeList(std::list<int> *li,int fd);
+int dealBufLogin(const char *buf,const int bufLen);
+int dealBufReady(const char *buf,const int bufLen);
+int dealBufMsg(const char *buf,const int bufLen);
+int dealBufLeave(const char *buf,const int bufLen);
+
+
+int addMap(int fd);
+int removeMap(int fd);
+fdBuf_t* findMap(int fd);
 #endif

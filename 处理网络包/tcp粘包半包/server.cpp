@@ -2,16 +2,15 @@
 #include "server.h"
 
 
-#define MAXBUF 1500
+#define MAXBUF 4096
 #define EPOLL_SIZE 1024
 
+std::map<int,fdBuf_t*> fdMap;
 int main(int argc, char const *argv[])
 {
 
 	int port;
-	char buf[MAXBUF];
 	int online = 0;
-	std::list<int> fdList;
 	int serversock = -1;
 
 	if (argc < 2){
@@ -44,6 +43,7 @@ int main(int argc, char const *argv[])
 	++online;
 
 	int readyEventNums = 0 ;
+	int res=0;
 	for ( ; ; )
 	{
 		readyEventNums = epoll_wait(epollFd,readyEvent,EPOLL_SIZE,-1);
@@ -59,6 +59,12 @@ int main(int argc, char const *argv[])
 					continue;
 				}
 				printf("a new client:%d\n",acceptClient);
+
+				if(addMap(acceptClient) < 0){
+					perror("addMap");
+					continue;
+				}
+
 				tempEvent.events = EPOLLIN;
 				tempEvent.data.fd = acceptClient;
 				if ((online+1) > EPOLL_SIZE){
@@ -69,73 +75,185 @@ int main(int argc, char const *argv[])
 					perror("epoll add acceptClient");
 					continue;
 				}
-				addList(&fdList,acceptClient);
 				++online;
-
 			}else{
-				int recvLen = recv(readyEvent[i].data.fd,buf,MAXBUF-1,0);
-				if(recvLen > 0){
-					sendMsg(&fdList,readyEvent[i].data.fd,buf,recvLen);
 
+				fdBuf_t *tempfd = findMap(readyEvent[i].data.fd);
+				if(tempfd == NULL){
+					perror("findMap");
+					continue;
+				}
+				printf("-----------%d\n", tempfd->maxLen - ( tempfd->bufPoint - tempfd->buf) - tempfd->bufLen);
+				int recvLen = recv(readyEvent[i].data.fd,tempfd->bufPoint + tempfd->bufLen,tempfd->maxLen - ( tempfd->bufPoint - tempfd->buf) - tempfd->bufLen,0);
+				if(recvLen > 0){
+					tempfd->bufLen += recvLen;
+					dealBuf(tempfd);
 				}else if (recvLen == 0){
-					close(readyEvent[i].data.fd);
+					perror("recvLen == 0");
+					if(removeMap(readyEvent[i].data.fd) < 0){
+						perror("removeMap");
+					}
+					//close(readyEvent[i].data.fd); // 听说不用释放
 					epoll_ctl(epollFd,EPOLL_CTL_DEL,readyEvent[i].data.fd,NULL);
-					removeList(&fdList,readyEvent[i].data.fd);
+					--online;
+					continue;		
+				}else{
+					if(removeMap(readyEvent[i].data.fd) < 0){
+						perror("removeMap");
+					}
+					epoll_ctl(epollFd,EPOLL_CTL_DEL,readyEvent[i].data.fd,NULL);
 					--online;
 
-				}else{
-					perror("a client have error");
+					close(readyEvent[i].data.fd);
+					perror("a client have error");	
+					continue;			
 				}
-
+				
 			}
 		}
 	}
 	return 0;
 }
 
-
-int sendMsg(std::list<int> *li,int originFd,char *msg,int msgLen)
+int addMap(int fd)
 {
-	int sendLen = 0;
-	std::list<int>::iterator b,e;
-	b = li->begin();
-	e = li->end();
-	for (; b != e; ++b){
-		if (*b != originFd ){		
-			write(STDOUT_FILENO,msg,msgLen);
-			sendLen = send(*b,msg,msgLen,0);
-			if(sendLen < 0){
-				perror("send");
-			}
-		}
+	fdBuf_t *temp = (fdBuf_t*)malloc(sizeof(fdBuf_t));
+	if (NULL ==  temp){
+		perror("malloc");
+		return -1;
 	}
+	temp->fd=fd;
+	temp->buf=(char *)malloc(MAXBUF);
+	if (NULL ==  temp->buf){
+		free(temp);
+		perror("malloc");
+		return -1;
+	}
+	temp->bufPoint = temp->buf;
+	temp->bufLen = 0;
+	temp->maxLen = MAXBUF;
+	std::pair<std::map<int,fdBuf_t*>::iterator,bool> ret;
+	ret = fdMap.insert(std::pair<int,fdBuf_t*>(fd,temp));
+	if (ret.second == false){
+		free(temp->buf);
+		free(temp);
+		perror("insert");
+		return -1;
+	}
+
+	return 0;
+
 }
 
-int addList(std::list<int> *li,int fd)
+int removeMap(int fd)
 {
-	printf("addList:%d\n", fd);
-	bool have =false;
-	std::list<int>::iterator b,e;
-	b = li->begin();
-	e = li->end();
-	for (; b != e; ++b){
-		if (*b == fd ){
-			have = true;
-			break;
+	std::map<int,fdBuf_t*>::iterator it;
+	it = fdMap.find(fd);
+	if (it != fdMap.end()){
+		free(it->second->buf);
+		free(it->second);
+		fdMap.erase(it);
+		return 0;
+	}
+	return -1;
+}
+
+fdBuf_t* findMap(int fd)
+{
+	std::map<int,fdBuf_t*>::iterator it;
+	it = fdMap.find(fd);
+	if (it == fdMap.end()){
+		return NULL;
+	}
+	return it->second;
+}
+
+
+
+int dealBuf(fdBuf_t * fdBuf)
+{
+	static char tempBuf[1500];
+
+	if ( (fdBuf->bufPoint + fdBuf->bufLen) == (fdBuf->buf + fdBuf->maxLen) ){
+		memcpy(fdBuf->buf ,fdBuf->bufPoint,fdBuf->bufLen);
+		fdBuf->bufPoint = fdBuf->buf;
+	}
+
+	int headSize = sizeof(head_t);
+
+	for (;;){
+		if (0 == fdBuf->bufLen){		
+			return 0;
 		}
+		if (headSize > fdBuf->bufLen){
+			printf("headSize:%d-------bufLen:%d-----------半包\n",headSize,fdBuf->bufLen);
+			return -1;
+		}
+		head_t *head = (head_t*)(fdBuf->bufPoint);
+		int cmd = head->cmd;
+		if (cmd != LOGIN && cmd != READY && cmd != MSG && cmd != LEAVE ){
+			fdBuf->bufPoint += 1;
+			fdBuf->bufLen -= 1;
+			printf("head->size:%d-------bufLen:%d-----------乱包\n",head->size,fdBuf->bufLen);
+			continue;
+		}
+		if(head->size > fdBuf->bufLen){
+			printf("head->size:%d-------bufLen:%d-----------半包\n",head->size,fdBuf->bufLen);
+			return -1;
+		}
+
+		
+		memcpy(tempBuf,fdBuf->bufPoint,head->size);
+
+		switch(cmd){
+			case LOGIN:	dealBufLogin(tempBuf,head->size);
+				break;
+			case READY:	dealBufReady(tempBuf,head->size);
+				break;
+			case MSG:	dealBufMsg(tempBuf,head->size);
+				break;
+			case LEAVE:	dealBufLeave(tempBuf,head->size);
+				break;
+			default:
+				break;
+		}
+		if (fdBuf->bufLen > head->size){
+			printf("head->size:%d-------bufLen:%d-----------粘包\n",head->size,fdBuf->bufLen);
+		}
+		fdBuf->bufPoint += head->size;
+		fdBuf->bufLen -= head->size;
 	}
-	if(have == false){
-		li->push_back(fd);
-	}
+
 	return 0;
 }
 
-int removeList(std::list<int> *li,int fd)
+int dealBufLogin(const char *buf,const int bufLen)
 {
-	printf("removeList:%d\n", fd);
-	li->remove(fd);
-	return 0;
+	login_t *que = (login_t*)(buf);
+	printf("LOGIN:useid:%d,token:%s\n",que->userid,que->token);
 }
+
+int dealBufReady(const char *buf,const int bufLen)
+{
+	ready_t *que = (ready_t*)(buf);
+	printf("READY:useid:%d\n",que->userid);
+}
+
+int dealBufMsg(const char *buf,const int bufLen)
+{
+	msg_t *que = (msg_t*)(buf);
+	printf("MSG:useid:%d,",que->userid);
+	write(STDOUT_FILENO,que->data,que->dataSize);
+	printf("\n");
+
+}
+
+int dealBufLeave(const char *buf,const int bufLen)
+{
+	leave_t *que = (leave_t*)(buf);
+	printf("LEAVE:useid:%d,score:%d\n",que->userid,que->score);
+}
+
 
 int socketinit(int port)
 {
@@ -149,6 +267,10 @@ int socketinit(int port)
 	serverAddr.sin_family = AF_INET;
 	serverAddr.sin_port = htons(port);
 	serverAddr.sin_addr.s_addr  = htonl(INADDR_ANY);
+	int flag=1;
+	if (setsockopt(tempSock,SOL_SOCKET,SO_REUSEADDR,&flag,sizeof(flag)) < 0){
+		perror("setsockopt");
+	}
 
 	if(bind(tempSock,(struct sockaddr *)&serverAddr,sizeof(struct sockaddr)) == -1){
 		perror("bind");

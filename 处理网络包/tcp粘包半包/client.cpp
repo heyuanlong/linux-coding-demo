@@ -13,13 +13,14 @@ int main(int argc, char const *argv[])
 	char buf[MAXBUF];
 	int sockLink = -1;
 
-	if (argc < 3){
+	if (argc < 4){
 		printf("arg is too less\n");
 		return 0;
 	}
 
 	strcpy(ip,argv[1]);
 	port  = atoi(argv[2]);
+	int pthreadCount = atoi(argv[3]);
 
 	pthread_attr_t attr;
 	if (pthread_attr_init(&attr)){
@@ -31,7 +32,7 @@ int main(int argc, char const *argv[])
 		return 0;
 	}
 
-	for ( int i= 0; i < 10 ; ++i){
+	for ( int i= 0; i < pthreadCount ; ++i){
 		pthread_t threadId;
 		int preturn;
 		preturn = pthread_create(&threadId,&attr,deal,NULL);
@@ -63,7 +64,6 @@ void * deal(void *param)
 		res = getBuf(buf,&bufLen,&type);
 		tempSendLen = 0;
 		for(;;){
-			printf("type:%d\n",*type );
 			sendLen = send(sockLink,buf + tempSendLen ,bufLen - tempSendLen,0);
 			if(sendLen > 0){
 				tempSendLen += sendLen;
@@ -71,12 +71,13 @@ void * deal(void *param)
 					break;
 				}
 			}else if (sendLen == 0){		
-				printf("client is close");
-				break;
+				perror("client is close");
+				return 0;
 			}else{
 				if( errno == EAGAIN || errno == EWOULDBLOCK){
 					continue;
 				}else{
+					close(sockLink);
 					perror("client have error");
 					return 0;
 				}
@@ -110,15 +111,15 @@ int connectServer(char *ip,int port)
 
 int getBuf(char *buf,int *bufLen,int *type)
 {
-	int *type = random() % 4;
+	*type = (int)(random() % 4) + LOGIN;
 	switch(*type){
-		case LOGIN:	getBufLogin(bufLen,bufLen);
+		case LOGIN:	getBufLogin(buf,bufLen);
 			break;
-		case READY:	getBufReady(bufLen,bufLen);
+		case READY:	getBufReady(buf,bufLen);
 			break;
-		case MSG:	getBufMsg(bufLen,bufLen);
+		case MSG:	getBufMsg(buf,bufLen);
 			break;
-		case LEAVE:	getBufLeave(bufLen,bufLen);
+		case LEAVE:	getBufLeave(buf,bufLen);
 			break;
 		default:
 			break;
@@ -136,6 +137,7 @@ int getBufLogin(char *buf,int *bufLen)
 	req->userid = random() % 100 + 1000 ;
 	strcpy(req->token,"this is token");
 	memcpy(buf,(char *)req,req->head.size);
+	*bufLen = req->head.size;
 	free(req);
 }
 
@@ -147,22 +149,25 @@ int getBufReady(char *buf,int *bufLen)
 	req->head.cmd = READY;
 	req->userid = random() % 100 + 1000 ;
 	memcpy(buf,(char *)req,req->head.size);
+	*bufLen = req->head.size;
 	free(req);
 }
 
 int getBufMsg(char *buf,int *bufLen)
 {
-	const char * data="this is msg!!!"
+	const char * data="this is msg!!!";
 	int msgLen = strlen(data);
 	int packetLen = sizeof(msg_t) + msgLen;
+
 	msg_t *req = (msg_t*)malloc(packetLen);
 	memset(req,0,sizeof(msg_t));
 	req->head.size = packetLen;
-	req->head.cmd = LEAVE;
+	req->head.cmd = MSG;
 	req->userid = random() % 100 + 1000 ;	
 	req->dataSize = msgLen;
 	memcpy(req->data,data,msgLen);
 	memcpy(buf,(char *)req,req->head.size);
+	*bufLen = req->head.size;
 	free(req);
 }
 
@@ -175,5 +180,6 @@ int getBufLeave(char *buf,int *bufLen)
 	req->userid = random() % 100 + 1000 ;
 	req->score = random() % 100 + 1000 ;
 	memcpy(buf,(char *)req,req->head.size);
+	*bufLen = req->head.size;
 	free(req);
 }
