@@ -1,0 +1,11 @@
+https://github.com/andymccurdy/redis-py
+此处用的是redis 2.10.5
+
+
+下载。
+解压
+python setup.py install
+
+
+redis-py的test目录有大量的测试例子
+

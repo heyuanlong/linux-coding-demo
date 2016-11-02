@@ -25,6 +25,11 @@ int main(int argc, char const *argv[])
 		exit(1);
 	}
 
+	reply = redisCommand(c,"auth ******");
+	if (reply->type == REDIS_REPLY_ERROR){
+		printf("Error: %s\n", reply->str);
+	}
+
 	reply = redisCommand(c,"ping");
 	if (reply->type == REDIS_REPLY_ERROR){
 		printf("Error: %s\n", reply->str);
