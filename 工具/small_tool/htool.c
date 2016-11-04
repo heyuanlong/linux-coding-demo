@@ -1,7 +1,7 @@
 #include "htool.h"
 
 
-
+//ok
 void msSleep(int millSec)
 {
 #if (defined(_WIN32) || defined(_WIN64) || defined(_WINDOWS_))
@@ -11,7 +11,7 @@ void msSleep(int millSec)
 #endif
 }
 
-
+//ok
 long getFileSize(const char *path)
 {
 	long len= 0;
@@ -26,6 +26,7 @@ long getFileSize(const char *path)
 
 }
 
+//ok
 int checkIsDir(const char *path)
 {
 	struct stat st;
@@ -37,6 +38,8 @@ int checkIsDir(const char *path)
 	}
 	return -1;
 }
+
+//ok
 int checkIsFile(const char *path)
 {
 	struct stat st;
@@ -47,4 +50,35 @@ int checkIsFile(const char *path)
 		return 0;
 	}
 	return -1;
+}
+
+//ok
+//gethostbyname存在性能瓶颈，而却不能用于多线程。
+int getIPStrByHost(const char * hostName,char *IPStr,int len)
+{
+	char **pptr = NULL;
+	struct hostent *hptr  = gethostbyname(hostName);
+	if(!hptr){
+		return -1;
+	}
+	switch(hptr->h_addrtype){
+		case AF_INET:
+		case AF_INET6:
+			pptr = hptr->h_addr_list;
+			for (; pptr != NULL; ++pptr)
+			{
+				if(inet_ntop(hptr->h_addrtype,*pptr,IPStr,len) == NULL){
+					return -1;
+				}
+				return 0;
+			}
+		default:
+			return -1;
+	}
+	return -1;
+}
+
+int getIPByHost(const char * hostName,char *IPStr)
+{
+
 }

@@ -6,7 +6,7 @@ import redis
 
 REDIS_HOST		='localhost'
 REDIS_PORT		= 6379
-REDIS_AUTH 		= 'FDFDfdi4k25e@sf'
+REDIS_AUTH 		= '*********'
 
 class RedisDB():
 	def __init__(self):

@@ -11,6 +11,11 @@
 
 #include <unistd.h>
 #include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <netdb.h>
+#include <sys/socket.h>
+
 
 
 void msSleep(int millSec);
@@ -20,4 +25,6 @@ int checkIsDir(const char *path);
 int checkIsFile(const char *path);
 
 
-#endif H_TOOL__H_
+int getIPStrByHost(const char * hostName,char *IPStr,int len);
+
+#endif

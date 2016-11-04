@@ -34,6 +34,8 @@ https://my.oschina.net/pwd/blog/399374
 mongo-c-driver 1.3.6
 https://github.com/mongodb/mongo-c-driver/releases/tag/1.3.6
 http://mongoc.org/libmongoc/current/installing.html#installing-unix
+http://www.cnblogs.com/oloroso/p/5733083.html
+
 
 source /etc/profile
 gcc -o test test.c $(pkg-config --cflags --libs libmongoc-1.0)
