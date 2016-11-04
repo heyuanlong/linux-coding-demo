@@ -15,7 +15,7 @@
 #include <sys/stat.h>
 #include <netdb.h>
 #include <sys/socket.h>
-
+#include <stdarg.h>
 
 
 void msSleep(int millSec);
@@ -27,4 +27,6 @@ int checkIsFile(const char *path);
 
 int getIPStrByHost(const char * hostName,char *IPStr,int len);
 
+void logInfo(char *fmt,...);
+void logError(char *fmt,...);
 #endif

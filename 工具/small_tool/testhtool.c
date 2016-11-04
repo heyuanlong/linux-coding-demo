@@ -23,5 +23,10 @@ int main(int argc, char const *argv[])
 	printf("%d\n", getIPStrByHost("cn.matchvs.com",ipstr,ipstrlen));
 	printf("%s\n",ipstr );
 
+	printf("logInfo\n");
+	logInfo("%d,%s",45,"dddddddddd");
+	printf("logError\n");
+	logError("%d,%s",45,"dddddddddd");
+
 	return 0;
 }

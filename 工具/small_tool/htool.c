@@ -78,7 +78,25 @@ int getIPStrByHost(const char * hostName,char *IPStr,int len)
 	return -1;
 }
 
-int getIPByHost(const char * hostName,char *IPStr)
+void logInfo(char *fmt,...)
+{	
+	//#include <stdarg.h>
+	static char sMessage[2048] = {0};
+	va_list argp;
+	va_start(argp,fmt);
+	vsnprintf(sMessage,sizeof(sMessage),fmt,argp);
+	fprintf(stdout, "%s\n", sMessage);
+	fflush(stdout);
+	va_end(argp);
+}
+void logError(char *fmt,...)
 {
-
+	//#include <stdarg.h>
+	static char sMessage[2048] = {0};
+	va_list argp;
+	va_start(argp,fmt);
+	vsnprintf(sMessage,sizeof(sMessage),fmt,argp);
+	fprintf(stderr, "%s\n", sMessage);
+	fflush(stdout);
+	va_end(argp);
 }
