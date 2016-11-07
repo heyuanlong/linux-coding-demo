@@ -3,11 +3,12 @@
 #include <time.h>
 
 #define MAXBUF 1500
-#define EPOLL_SIZE 2
+#define EPOLL_SIZE 10
 
 char ip[32] = {0};
 int port;
-
+int lobbySockLink = -1;
+int roomSockLink = -1;
 
 int main(int argc, char const *argv[])
 {
@@ -15,7 +16,7 @@ int main(int argc, char const *argv[])
 	int port;
 	char buf[MAXBUF];
 	char stdinBuf[MAXBUF];
-	int sockLink = -1;
+	
 
 	if (argc < 3){
 		printf("arg is too less\n");
@@ -25,29 +26,29 @@ int main(int argc, char const *argv[])
 	strcpy(ip,argv[1]);
 	port  = atoi(argv[2]);
 
-	sockLink = connectServer(ip,port);
-	if (sockLink == -1 ){
+	lobbySockLink = connectServer(ip,port);
+	if (lobbySockLink == -1 ){
 		return 0;
 	}
 	int epollFd = epoll_create(EPOLL_SIZE);
 	if(epollFd == -1){
 		perror("epoll create");
-		close(sockLink);
+		close(lobbySockLink);
 		return 0;
 	}
 	struct epoll_event serverEpollEvent,stdinEpollEvent,readyEvent[EPOLL_SIZE];
 	serverEpollEvent.events = EPOLLIN;
-	serverEpollEvent.data.fd = sockLink;
+	serverEpollEvent.data.fd = lobbySockLink;
 	stdinEpollEvent.events = EPOLLIN;
 	stdinEpollEvent.data.fd = STDIN_FILENO;
-	if (epoll_ctl(epollFd,EPOLL_CTL_ADD,sockLink,&serverEpollEvent) == -1){
-		perror("epoll add sockLink");
-		close(sockLink);
+	if (epoll_ctl(epollFd,EPOLL_CTL_ADD,lobbySockLink,&serverEpollEvent) == -1){
+		perror("epoll add lobbySockLink");
+		close(lobbySockLink);
 		return 0;
 	}	
 	if (epoll_ctl(epollFd,EPOLL_CTL_ADD,STDIN_FILENO,&stdinEpollEvent) == -1){
 		perror("epoll add STDIN_FILENO");
-		close(sockLink);
+		close(lobbySockLink);
 		return 0;
 	}
 
@@ -60,7 +61,7 @@ int main(int argc, char const *argv[])
 			if (!(readyEvent[i].events & EPOLLIN)){
 				continue;
 			}
-			if (readyEvent[i].data.fd == sockLink ){
+			if (readyEvent[i].data.fd == lobbySockLink ){
 				int recvLen = recv(readyEvent[i].data.fd,buf,MAXBUF-1,0);
 				if(recvLen > 0){
 					write(STDOUT_FILENO,buf,recvLen);
@@ -76,14 +77,11 @@ int main(int argc, char const *argv[])
 					return 0;
 				}
 			}
-			else{
+			else if(readyEvent[i].data.fd == STDIN_FILENO ){
 				int readLen = read(STDIN_FILENO,stdinBuf,MAXBUF);
 				if(readLen > 0){
-					int sendLen = send(sockLink,stdinBuf,readLen,0);
-					if (sendLen < 0){
-						perror("sockLink have error");
-						return 0;
-					}
+					stdinBuf[sendLen] = '\0';
+					dealUserMsg(stdinBuf);
 
 				}else if (readLen == 0){
 					close(readyEvent[i].data.fd);
@@ -96,54 +94,17 @@ int main(int argc, char const *argv[])
 					return 0;
 				}
 			}
+			else{
+
+			}
 		}
 	}
 
-	close(sockLink);
+	close(lobbySockLink);
 	return 0;
 }
 
 
-
-void * deal(void *param)
-{
-	char buf[MAXBUF];
-	int bufLen=0;
-	int type=0;
-
-	int sockLink = connectServer(ip,port);
-	if (sockLink == -1 ){
-		return 0;
-	}
-	int res = 0;
-	int tempSendLen = 0;
-	int sendLen = 0;
-	for(;;){
-		res = getBuf(buf,&bufLen,&type);
-		tempSendLen = 0;
-		for(;;){
-			sendLen = send(sockLink,buf + tempSendLen ,bufLen - tempSendLen,0);
-			if(sendLen > 0){
-				tempSendLen += sendLen;
-				if(tempSendLen == bufLen){
-					break;
-				}
-			}else if (sendLen == 0){		
-				perror("client is close");
-				return 0;
-			}else{
-				if( errno == EAGAIN || errno == EWOULDBLOCK){
-					continue;
-				}else{
-					close(sockLink);
-					perror("client have error");
-					return 0;
-				}
-			}
-		}
-	}
-	close(sockLink);
-}
 
 int connectServer(char *ip,int port)
 {
@@ -167,49 +128,114 @@ int connectServer(char *ip,int port)
 	return clientSoct;
 }
 
-int getBuf(char *buf,int *bufLen,int *type)
+void dealUserMsg(char *stdinBuf)
 {
-	*type = (int)(random() % 4) + LOGIN;
-	switch(*type){
-		case LOGIN:	getBufLogin(buf,bufLen);
-			break;
-		case READY:	getBufReady(buf,bufLen);
-			break;
-		case MSG:	getBufMsg(buf,bufLen);
-			break;
-		case LEAVE:	getBufLeave(buf,bufLen);
-			break;
-		default:
-			break;
+	char buf[MAXBUF];
+	int bufLen;
+
+	if (strcpy(stdinBuf,"reg")){
+		getBufReg(buf,&bufLen);
+		sendLobby(buf,bufLen);
+	}
+	else if (strcpy(stdinBuf,"login")){
+		getBufLogin(buf,&bufLen);
+		sendLobby(buf,bufLen);
+	}
+	else if (strcpy(stdinBuf,"logout")){
+		getBufLogout(buf,&bufLen);	
+		sendLobby(buf,bufLen);
+	}
+	else if (strcpy(stdinBuf,"roomin")){
+		getBufRoomIn(buf,&bufLen);
+		sendLobby(buf,bufLen);
+	}
+	else if (strcpy(stdinBuf,"roomout")){
+		getBufRoomOut(buf,&bufLen);	
+		sendLobby(buf,bufLen);
+	}
+	else if (strcpy(stdinBuf,"msg")){
+		getBufMsg(buf,&bufLen);	
+		sendRoom(buf,bufLen);
+	}
+	else{
 
 	}
-	return *bufLen;
+}
+
+int sendLobby(const char *buf,const int len)
+{
+	int len = send(lobbySockLink,buf,len,0);
+	return len;
+}
+
+int sendRoom(const char *buf,const int len)
+{
+
+}
+
+
+int getBufReg(char *buf,int *bufLen)
+{
+	lobby_event_t *req = (lobby_event_t*)malloc(sizeof(lobby_event_t));
+	memset(req,0,sizeof(lobby_event_t));
+	req->m_head.size = sizeof(lobby_event_t);
+	req->m_head.from_type = FROM_TYPE_CLIENT;
+	req->m_head.cmd = CMD_REG;
+	req->user_id = 0;
+	req->room_id = 0;
+	*bufLen = req->m_head.size
+	free(req);
 }
 
 int getBufLogin(char *buf,int *bufLen)
 {
-	login_t *req = (login_t*)malloc(sizeof(login_t));
-	memset(req,0,sizeof(login_t));
-	req->head.size = sizeof(login_t);
-	req->head.cmd = LOGIN;
-	req->userid = random() % 100 + 1000 ;
-	strcpy(req->token,"this is token");
-	memcpy(buf,(char *)req,req->head.size);
-	*bufLen = req->head.size;
+	lobby_event_t *req = (lobby_event_t*)malloc(sizeof(lobby_event_t));
+	memset(req,0,sizeof(lobby_event_t));
+	req->m_head.size = sizeof(lobby_event_t);
+	req->m_head.from_type = FROM_TYPE_CLIENT;
+	req->m_head.cmd = CMD_REG;
+	req->user_id = 0;
+	req->room_id = 0;
+	*bufLen = req->m_head.size
+	free(req);
+}
+int getBufLogout(char *buf,int *bufLen)
+{
+	lobby_event_t *req = (lobby_event_t*)malloc(sizeof(lobby_event_t));
+	memset(req,0,sizeof(lobby_event_t));
+	req->m_head.size = sizeof(lobby_event_t);
+	req->m_head.from_type = FROM_TYPE_CLIENT;
+	req->m_head.cmd = CMD_REG;
+	req->user_id = 0;
+	req->room_id = 0;
+	*bufLen = req->m_head.size
+	free(req);
+}
+int getBufRoomIn(char *buf,int *bufLen)
+{
+	lobby_event_t *req = (lobby_event_t*)malloc(sizeof(lobby_event_t));
+	memset(req,0,sizeof(lobby_event_t));
+	req->m_head.size = sizeof(lobby_event_t);
+	req->m_head.from_type = FROM_TYPE_CLIENT;
+	req->m_head.cmd = CMD_REG;
+	req->user_id = 0;
+	req->room_id = 0;
+	*bufLen = req->m_head.size
+	free(req);
+}
+int getBufRoomOut(char *buf,int *bufLen)
+{
+	lobby_event_t *req = (lobby_event_t*)malloc(sizeof(lobby_event_t));
+	memset(req,0,sizeof(lobby_event_t));
+	req->m_head.size = sizeof(lobby_event_t);
+	req->m_head.from_type = FROM_TYPE_CLIENT;
+	req->m_head.cmd = CMD_REG;
+	req->user_id = 0;
+	req->room_id = 0;
+	*bufLen = req->m_head.size
 	free(req);
 }
 
-int getBufReady(char *buf,int *bufLen)
-{
-	ready_t *req = (ready_t*)malloc(sizeof(ready_t));
-	memset(req,0,sizeof(ready_t));
-	req->head.size = sizeof(ready_t);
-	req->head.cmd = READY;
-	req->userid = random() % 100 + 1000 ;
-	memcpy(buf,(char *)req,req->head.size);
-	*bufLen = req->head.size;
-	free(req);
-}
 
 int getBufMsg(char *buf,int *bufLen)
 {
@@ -229,15 +255,3 @@ int getBufMsg(char *buf,int *bufLen)
 	free(req);
 }
 
-int getBufLeave(char *buf,int *bufLen)
-{
-	leave_t *req = (leave_t*)malloc(sizeof(leave_t));
-	memset(req,0,sizeof(leave_t));
-	req->head.size = sizeof(leave_t);
-	req->head.cmd = LEAVE;
-	req->userid = random() % 100 + 1000 ;
-	req->score = random() % 100 + 1000 ;
-	memcpy(buf,(char *)req,req->head.size);
-	*bufLen = req->head.size;
-	free(req);
-}

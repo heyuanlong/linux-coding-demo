@@ -17,15 +17,19 @@
 #include <pthread.h>
 
 int connectServer(char *ip,int port);
+void dealUserMsg(char *stdinBuf);
 
-void * deal(void *param);
-int getBuf(char *buf,int *bufLen,int *type);
 
+int sendLobby(const char *buf,const int len);
+int sendRoom(const char *buf,const int len);
+
+
+int getBufReg(char *buf,int *bufLen);
 int getBufLogin(char *buf,int *bufLen);
-int getBufReady(char *buf,int *bufLen);
+int getBufLogout(char *buf,int *bufLen);
+int getBufRoomIn(char *buf,int *bufLen);
+int getBufRoomOut(char *buf,int *bufLen);
 int getBufMsg(char *buf,int *bufLen);
-int getBufLeave(char *buf,int *bufLen);
-
 
 
 
