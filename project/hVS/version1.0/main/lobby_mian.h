@@ -7,11 +7,11 @@
 
 
 
+#include "busi/lobby/control/lobby_manager.h"
+#include "conf/conf.h"
 
 
 
 
 
-
-
-#endif __LOBBY_MAIN__H__
+#endif 

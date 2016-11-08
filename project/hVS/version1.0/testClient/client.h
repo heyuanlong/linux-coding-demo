@@ -18,7 +18,7 @@
 
 int connectServer(char *ip,int port);
 void dealUserMsg(char *stdinBuf);
-
+void dealRecvMsg(char *buf,int recvLen);
 
 int sendLobby(const char *buf,const int len);
 int sendRoom(const char *buf,const int len);

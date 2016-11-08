@@ -13,4 +13,4 @@ int get_room_server(char *server_arr, int *nums);
 int get_lobby_server_udp_port();
 
 
-#endif __CONF__H__
+#endif 

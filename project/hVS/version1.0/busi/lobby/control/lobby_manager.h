@@ -9,9 +9,7 @@
 #include<netinet/in.h>
 #include<arpa/inet.h>
 
-
 #include "busi/lobby/model/lobby.h"
-#include "event/event.h"
 
 #define FROM_TYPE_CLIENT 1000
 #define CMD_REG 1001
@@ -63,4 +61,4 @@ typedef int(*busi_lobby_callback_handle_t)(lobby_busi_t *busi);
 int busi_lobby_init();
 int busi_lobby_loop();
 
-#endif __LOBBY_MANAGER__H__
+#endif

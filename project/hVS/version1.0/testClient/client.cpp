@@ -64,7 +64,7 @@ int main(int argc, char const *argv[])
 			if (readyEvent[i].data.fd == lobbySockLink ){
 				int recvLen = recv(readyEvent[i].data.fd,buf,MAXBUF-1,0);
 				if(recvLen > 0){
-					write(STDOUT_FILENO,buf,recvLen);
+					dealRecvMsg(buf,recvLen);
 
 				}else if (recvLen == 0){
 					close(readyEvent[i].data.fd);
@@ -80,7 +80,7 @@ int main(int argc, char const *argv[])
 			else if(readyEvent[i].data.fd == STDIN_FILENO ){
 				int readLen = read(STDIN_FILENO,stdinBuf,MAXBUF);
 				if(readLen > 0){
-					stdinBuf[readLen] = '\0';
+					stdinBuf[readLen - 1] = '\0';
 					dealUserMsg(stdinBuf);
 
 				}else if (readLen == 0){
@@ -128,32 +128,53 @@ int connectServer(char *ip,int port)
 	return clientSoct;
 }
 
+void dealRecvMsg(char *buf,int recvLen)
+{
+	int headSize = sizeof(lobby_busi_head_t);
+	if(recvLen < headSize){
+		return ;
+	}
+	lobby_busi_head_t *head = (lobby_busi_head_t*)buf;
+	if(recvLen < head->size){
+		return;
+	}
+	lobby_callback_t *lct = (lobby_callback_t*)buf;
+	printf("size:%d,from_type:%d,cmd:%d,user_id:%d,room_id:%d,status:%d\n", 
+			lct->m_head.size,
+			lct->m_head.from_type,
+			lct->m_head.cmd,
+			lct->user_id,
+			lct->room_id,
+			lct->status
+			);
+}
+
 void dealUserMsg(char *stdinBuf)
 {
 	char buf[MAXBUF];
 	int bufLen;
-
-	if (strcpy(stdinBuf,"reg")){
+	printf("%s\n", stdinBuf);
+	if (strcmp(stdinBuf,"reg") == 0){
 		getBufReg(buf,&bufLen);
 		sendLobby(buf,bufLen);
 	}
-	else if (strcpy(stdinBuf,"login")){
+	else if (strcmp(stdinBuf,"login") == 0){
 		getBufLogin(buf,&bufLen);
 		sendLobby(buf,bufLen);
 	}
-	else if (strcpy(stdinBuf,"logout")){
+	else if (strcmp(stdinBuf,"logout") == 0){
 		getBufLogout(buf,&bufLen);	
 		sendLobby(buf,bufLen);
 	}
-	else if (strcpy(stdinBuf,"roomin")){
+	else if (strcmp(stdinBuf,"roomin") == 0){
 		getBufRoomIn(buf,&bufLen);
 		sendLobby(buf,bufLen);
 	}
-	else if (strcpy(stdinBuf,"roomout")){
+	else if (strcmp(stdinBuf,"roomout") == 0){
 		getBufRoomOut(buf,&bufLen);	
 		sendLobby(buf,bufLen);
 	}
-	else if (strcpy(stdinBuf,"msg")){
+	else if (strcmp(stdinBuf,"msg") == 0){
 		getBufMsg(buf,&bufLen);	
 		sendRoom(buf,bufLen);
 	}
@@ -183,6 +204,7 @@ int getBufReg(char *buf,int *bufLen)
 	req->m_head.cmd = CMD_REG;
 	req->user_id = 0;
 	req->room_id = 0;
+	memcpy(buf,(char *)req, req->m_head.size);
 	*bufLen = req->m_head.size;
 	free(req);
 	return 0;
@@ -197,6 +219,7 @@ int getBufLogin(char *buf,int *bufLen)
 	req->m_head.cmd = CMD_REG;
 	req->user_id = 0;
 	req->room_id = 0;
+	memcpy(buf,(char *)req, req->m_head.size);
 	*bufLen = req->m_head.size;
 	free(req);
 	return 0;
@@ -210,6 +233,7 @@ int getBufLogout(char *buf,int *bufLen)
 	req->m_head.cmd = CMD_REG;
 	req->user_id = 0;
 	req->room_id = 0;
+	memcpy(buf,(char *)req, req->m_head.size);
 	*bufLen = req->m_head.size;
 	free(req);
 	return 0;
@@ -223,6 +247,7 @@ int getBufRoomIn(char *buf,int *bufLen)
 	req->m_head.cmd = CMD_REG;
 	req->user_id = 0;
 	req->room_id = 0;
+	memcpy(buf,(char *)req, req->m_head.size);
 	*bufLen = req->m_head.size;
 	free(req);
 	return 0;
@@ -236,6 +261,7 @@ int getBufRoomOut(char *buf,int *bufLen)
 	req->m_head.cmd = CMD_REG;
 	req->user_id = 0;
 	req->room_id = 0;
+	memcpy(buf,(char *)req, req->m_head.size);
 	*bufLen = req->m_head.size;
 	free(req);
 	return 0;

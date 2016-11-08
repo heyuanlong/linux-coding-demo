@@ -27,4 +27,4 @@ int busi_lobby_model_goout_room(int user_id,int room_id);
 
 
 
-#endif __LOBBY__H__
+#endif

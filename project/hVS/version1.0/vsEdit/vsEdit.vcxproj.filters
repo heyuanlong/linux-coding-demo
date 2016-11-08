@@ -164,4 +164,7 @@
       <Filter>conf</Filter>
     </Text>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Makefile" />
+  </ItemGroup>
 </Project>

@@ -1,5 +1,5 @@
 #include "lobby_manager.h"
-
+#include "event/event.h"
 lobby_t *s_lobby;
 
 
@@ -23,6 +23,7 @@ int busi_lobby_init()
 
 int busi_lobby_loop()
 {
+	event_lobby_init();
 	int res = event_lobby_loop(busi_lobby_callback_handle); //里面是循环
 	return res;
 }
@@ -31,6 +32,7 @@ int busi_lobby_loop()
 
 int busi_lobby_callback_handle(lobby_busi_t *busi)
 {
+	printf("busi_lobby_callback_handle from_type:%d,cmd:%d\n", busi->m_event->m_head.from_type, busi->m_event->m_head.cmd);
 	switch (busi->m_event->m_head.from_type)
 	{
 	case FROM_TYPE_CLIENT:
@@ -71,9 +73,10 @@ int busi_lobby_reg(lobby_busi_t* busi)
 	int user_id;
 	user_id = busi_lobby_model_reg();
 	if (user_id < 0) {
+		printf("busi_lobby_reg have failed\n");
 	}
 	busi->m_event->user_id = user_id;
-	busi_lobby_model_reg_notify(busi);
+	event_lobby_reg_notify(busi);
 
 	return 0;
 }
@@ -89,7 +92,7 @@ int busi_lobby_login(lobby_busi_t* busi)
 	if (res < 0) {
 
 	}
-	busi_lobby_model_login_notify(busi);
+	event_lobby_login_notify(busi);
 	return 0;
 }
 int busi_lobby_logout(lobby_busi_t* busi)
@@ -104,7 +107,7 @@ int busi_lobby_logout(lobby_busi_t* busi)
 	if (res < 0) {
 
 	}
-	busi_lobby_model_logout_notify(busi);
+	event_lobby_logout_notify(busi);
 	return 0;
 }
 int busi_lobby_enter_room(lobby_busi_t* busi)

@@ -150,6 +150,9 @@
     <Text Include="..\conf\conf.txt" />
     <Text Include="..\说明\说明.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Makefile" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
