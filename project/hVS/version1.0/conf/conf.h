@@ -6,11 +6,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 int conf_init();
 int get_room_server(char *server_arr, int *nums);
 int get_lobby_server_udp_port();
 
-
+int get_error_fd();
+int get_warning_fd();
+int get_info_fd();
 #endif 

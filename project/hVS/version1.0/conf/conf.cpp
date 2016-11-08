@@ -5,6 +5,10 @@ static char s_server[128][IPSTRLEN] = { 0 };
 static int s_server_nums = 0;
 static int lobby_server_upd_port = 0;
 
+static int error_fd = -1;
+static int warning_fd = -1;
+static int info_fd = -1;
+
 static int parse(char *buf,char *key, char *value);
 static int trim_string(char *buf);
 int conf_init()
@@ -30,6 +34,28 @@ int conf_init()
 		else if (strcmp(key, "conf_lobby_server_upd_port") == 0) {
 			lobby_server_upd_port = atoi(value);
 			if (lobby_server_upd_port <= 0) {
+				perror("conf_lobby_server_upd_port");
+				exit(1);
+			}
+		}
+		else if (strcmp(key, "log_error_file") == 0) {
+			error_fd = open(value, O_APPEND  | O_RDWR); //难道要先判断文件是否存在了？
+			if (error_fd < -1) {
+				perror("log_error_file");
+				exit(1);
+			}
+		}
+		else if (strcmp(key, "log_warning_file") == 0) {
+			warning_fd = open(value, O_APPEND  | O_RDWR);
+			if (warning_fd < -1) {
+				perror("log_warning_file");
+				exit(1);
+			}
+		}
+		else if (strcmp(key, "log_info_file") == 0) {
+			info_fd = open(value, O_APPEND  | O_RDWR);
+			if (info_fd < -1) {
+				perror("log_info_file");
 				exit(1);
 			}
 		}
@@ -48,6 +74,21 @@ int get_lobby_server_udp_port()
 {
 	return lobby_server_upd_port;
 }
+
+int get_error_fd()
+{
+	return error_fd;
+}
+int get_warning_fd()
+{
+	return warning_fd;
+}
+int get_info_fd()
+{
+	return info_fd;
+}
+
+
 
 
 

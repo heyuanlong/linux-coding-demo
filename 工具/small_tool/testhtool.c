@@ -26,7 +26,7 @@ int main(int argc, char const *argv[])
 	printf("logInfo\n");
 	logInfo("%d,%s",45,"dddddddddd");
 	printf("logError\n");
-	logError("%d,%s",45,"dddddddddd");
+	logError("%d,%s\n",45,"sss");
 
 	return 0;
 }

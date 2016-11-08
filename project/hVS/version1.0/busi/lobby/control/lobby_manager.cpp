@@ -1,5 +1,6 @@
 #include "lobby_manager.h"
 #include "event/event.h"
+#include "log/log.h"
 lobby_t *s_lobby;
 
 
@@ -32,7 +33,7 @@ int busi_lobby_loop()
 
 int busi_lobby_callback_handle(lobby_busi_t *busi)
 {
-	printf("busi_lobby_callback_handle from_type:%d,cmd:%d\n", busi->m_event->m_head.from_type, busi->m_event->m_head.cmd);
+	log_info_fd("busi_lobby_callback_handle from_type:%d,cmd:%d\n", busi->m_event->m_head.from_type, busi->m_event->m_head.cmd);
 	switch (busi->m_event->m_head.from_type)
 	{
 	case FROM_TYPE_CLIENT:

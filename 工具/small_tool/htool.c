@@ -85,18 +85,20 @@ void logInfo(char *fmt,...)
 	va_list argp;
 	va_start(argp,fmt);
 	vsnprintf(sMessage,sizeof(sMessage),fmt,argp);
-	fprintf(stdout, "%s\n", sMessage);
-	fflush(stdout);
 	va_end(argp);
+
+	fprintf(stdout, "%s\n", sMessage);
+	fflush(stdout);                     //不fflush则不会立即到文件里
 }
 void logError(char *fmt,...)
 {
-	//#include <stdarg.h>
-	static char sMessage[2048] = {0};
+	#define LOG_MESSAGE 2048
+	static char s_message[LOG_MESSAGE];
+	static int fd = STDOUT_FILENO;
+	int len;
 	va_list argp;
-	va_start(argp,fmt);
-	vsnprintf(sMessage,sizeof(sMessage),fmt,argp);
-	fprintf(stderr, "%s\n", sMessage);
-	fflush(stdout);
+	va_start(argp, fmt);
+	len = vsnprintf(s_message, LOG_MESSAGE, fmt, argp);//返回字符串的长度
 	va_end(argp);
+	write(fd, s_message, len);
 }
