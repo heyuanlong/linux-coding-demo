@@ -80,7 +80,7 @@ int main(int argc, char const *argv[])
 			else if(readyEvent[i].data.fd == STDIN_FILENO ){
 				int readLen = read(STDIN_FILENO,stdinBuf,MAXBUF);
 				if(readLen > 0){
-					stdinBuf[sendLen] = '\0';
+					stdinBuf[readLen] = '\0';
 					dealUserMsg(stdinBuf);
 
 				}else if (readLen == 0){
@@ -164,13 +164,13 @@ void dealUserMsg(char *stdinBuf)
 
 int sendLobby(const char *buf,const int len)
 {
-	int len = send(lobbySockLink,buf,len,0);
-	return len;
+	int sendLen = send(lobbySockLink,buf,len,0);
+	return sendLen;
 }
 
 int sendRoom(const char *buf,const int len)
 {
-
+	return 0;
 }
 
 
@@ -183,8 +183,9 @@ int getBufReg(char *buf,int *bufLen)
 	req->m_head.cmd = CMD_REG;
 	req->user_id = 0;
 	req->room_id = 0;
-	*bufLen = req->m_head.size
+	*bufLen = req->m_head.size;
 	free(req);
+	return 0;
 }
 
 int getBufLogin(char *buf,int *bufLen)
@@ -196,8 +197,9 @@ int getBufLogin(char *buf,int *bufLen)
 	req->m_head.cmd = CMD_REG;
 	req->user_id = 0;
 	req->room_id = 0;
-	*bufLen = req->m_head.size
+	*bufLen = req->m_head.size;
 	free(req);
+	return 0;
 }
 int getBufLogout(char *buf,int *bufLen)
 {
@@ -208,8 +210,9 @@ int getBufLogout(char *buf,int *bufLen)
 	req->m_head.cmd = CMD_REG;
 	req->user_id = 0;
 	req->room_id = 0;
-	*bufLen = req->m_head.size
+	*bufLen = req->m_head.size;
 	free(req);
+	return 0;
 }
 int getBufRoomIn(char *buf,int *bufLen)
 {
@@ -220,8 +223,9 @@ int getBufRoomIn(char *buf,int *bufLen)
 	req->m_head.cmd = CMD_REG;
 	req->user_id = 0;
 	req->room_id = 0;
-	*bufLen = req->m_head.size
+	*bufLen = req->m_head.size;
 	free(req);
+	return 0;
 }
 int getBufRoomOut(char *buf,int *bufLen)
 {
@@ -232,14 +236,15 @@ int getBufRoomOut(char *buf,int *bufLen)
 	req->m_head.cmd = CMD_REG;
 	req->user_id = 0;
 	req->room_id = 0;
-	*bufLen = req->m_head.size
+	*bufLen = req->m_head.size;
 	free(req);
+	return 0;
 }
 
 
 int getBufMsg(char *buf,int *bufLen)
 {
-	const char * data="this is msg!!!";
+/*	const char * data="this is msg!!!";
 	int msgLen = strlen(data);
 	int packetLen = sizeof(msg_t) + msgLen;
 
@@ -252,6 +257,7 @@ int getBufMsg(char *buf,int *bufLen)
 	memcpy(req->data,data,msgLen);
 	memcpy(buf,(char *)req,req->head.size);
 	*bufLen = req->head.size;
-	free(req);
+	free(req);*/
+	return 0;
 }
 

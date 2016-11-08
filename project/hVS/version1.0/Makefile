@@ -1,33 +1,74 @@
+Dir =  busi/lobby/control/ \
+busi/lobby/model/ \
+busi/room/control/ \
+busi/room/model/ \
+cahe/control/ \
+cahe/model/redis/ \
+conf/ \
+db/control/ \
+db/model/mysql/ \
+event/ \
+log/ \
+mem/ \
+net/ \
+tool/ 
+
+testDir = testClient/
+
+Src = $(foreach dir,$(Dir), $(wildcard $(dir)*.cpp))
+lobbySrc = Src main/lobby_mian.cpp
+roomSrc = Src main/room_mian.cpp
+testSrc =  $(foreach dir,$(testDir), $(wildcard $(dir)*.cpp))
+
+lobbyObjDir = obj/lobby/
+roomObjDir = obj/room/
+testObjDir = obj/test/
+
+lobbyFileSrc=$(notdir $(lobbySrc))
+roomFileSrc=$(notdir $(roomSrc))
+testFileSrc=$(notdir $(testSrc))
+lobbyObj = $(patsubst %.cpp,$(lobbyObjDir)%.o,$(lobbyFileSrc))
+roomObj = $(patsubst %.cpp,$(roomObjDir)%.o,$(roomFileSrc))
+testObj = $(patsubst %.cpp,$(testObjDir)%.o,$(testFileSrc))
+
+
+makeDir=./makeDir
+lobby=bin/lobby
+room=bin/room
+testClient=bin/testClient
+
+Inc = Dir main/
+LibDbMysql=-L../third-party/libs -lmysqlclient
+
 
 CC=g++
-
-SERVE=us
-CLIENT=uc
-OBJSERVE=us.o 
-OBJCLIENT=uc.o
-
 CFLAGS=
 
 
 #------------------------------------------------------------
+
+
+
 .PHONY: all
 
-all:    $(SERVE) $(CLIENT)
+all:    $(makeDir) $(testClient)
+	@echo $(Src)
 
-$(SERVE):   $(OBJSERVE)
-	$(CC) $(LDFLAGS) -o $(SERVE) $(OBJSERVE)
-        
-$(CLIENT):   $(OBJCLIENT)
-	$(CC) $(LDFLAGS) -o $(CLIENT) $(OBJCLIENT)
-        
+test:$(makeDir) $(testClient)
+	@echo $(testClient)
 
-$(OBJSERVE): %.o:   server.cpp server.h base.h
-	$(CC) $(CFLAGS) -c -o $@ $<
+$(makeDir):$(MAIN)
+	mkdir -p bin/
+	mkdir -p obj/lobby
+	mkdir -p obj/room
+	mkdir -p obj/test
 
-$(OBJCLIENT): %.o:   client.cpp client.h base.h
-	$(CC) $(CFLAGS) -c -o $@ $<
+$(testClient):$(testObj)
+	$(CC) -o $@ $^
+
+$(testObj):$(testSrc)
+	$(CC) -c -o $@ $<
+
+
 
 clean:
-	rm *.o -f
-	rm $(SERVE)
-	rm $(CLIENT)
