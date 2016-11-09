@@ -1,6 +1,7 @@
 #include "conf.h"
 
 #define IPSTRLEN 20
+#define SQLBUFSIZE 20
 static char s_server[128][IPSTRLEN] = { 0 };
 static int s_server_nums = 0;
 static int lobby_server_upd_port = 0;
@@ -8,6 +9,13 @@ static int lobby_server_upd_port = 0;
 static int error_fd = -1;
 static int warning_fd = -1;
 static int info_fd = -1;
+
+
+static char mysql_host[SQLBUFSIZE] = { 0 };
+static char mysql_user[SQLBUFSIZE] = { 0 };
+static char mysql_password[SQLBUFSIZE] = { 0 };
+static char mysql_db[SQLBUFSIZE] = { 0 };
+
 
 static int parse(char *buf,char *key, char *value);
 static int trim_string(char *buf);
@@ -59,6 +67,18 @@ int conf_init()
 				exit(1);
 			}
 		}
+		else if (strcmp(key, "mysql_host") == 0) {
+			strncpy(mysql_host, value, SQLBUFSIZE - 1);
+		}
+		else if (strcmp(key, "mysql_user") == 0) {
+			strncpy(mysql_user, value, SQLBUFSIZE - 1);
+		}
+		else if (strcmp(key, "mysql_password") == 0) {
+			strncpy(mysql_password, value, SQLBUFSIZE - 1);
+		}
+		else if (strcmp(key, "mysql_db") == 0) {
+			strncpy(mysql_db, value, SQLBUFSIZE - 1);
+		}
 		else {
 		}
 	}
@@ -88,6 +108,23 @@ int get_info_fd()
 	return info_fd;
 }
 
+
+const char *get_mysql_host()
+{
+	return mysql_host;
+}
+const char *get_mysql_user()
+{
+	return mysql_user;
+}
+const char *get_mysql_password()
+{
+	return mysql_password;
+}
+const char *get_mysql_db()
+{
+	return mysql_db;
+}
 
 
 

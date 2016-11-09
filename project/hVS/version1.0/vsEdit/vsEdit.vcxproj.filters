@@ -117,6 +117,15 @@
     <ClCompile Include="..\net\net.cpp">
       <Filter>net</Filter>
     </ClCompile>
+    <ClCompile Include="..\db\model\mysql\base_mysql.cpp">
+      <Filter>db\model\mysql</Filter>
+    </ClCompile>
+    <ClCompile Include="..\db\model\mysql\lobby_mysql.cpp">
+      <Filter>db\model\mysql</Filter>
+    </ClCompile>
+    <ClCompile Include="..\db\control\lobby_db.cpp">
+      <Filter>db\control</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\conf\conf.h">
@@ -154,6 +163,15 @@
     </ClInclude>
     <ClInclude Include="..\net\net.h">
       <Filter>net</Filter>
+    </ClInclude>
+    <ClInclude Include="..\db\model\mysql\base_mysql.h">
+      <Filter>db\model\mysql</Filter>
+    </ClInclude>
+    <ClInclude Include="..\db\model\mysql\lobby_mysql.h">
+      <Filter>db\model\mysql</Filter>
+    </ClInclude>
+    <ClInclude Include="..\db\control\lobby_db.h">
+      <Filter>db\control</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

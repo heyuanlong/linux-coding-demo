@@ -17,4 +17,11 @@ int get_lobby_server_udp_port();
 int get_error_fd();
 int get_warning_fd();
 int get_info_fd();
+
+const char *get_mysql_host();
+const char *get_mysql_user();
+const char *get_mysql_password();
+const char *get_mysql_db();
+
+
 #endif 

@@ -124,6 +124,9 @@
     <ClCompile Include="..\busi\room\control\room_manager.cpp" />
     <ClCompile Include="..\busi\room\model\room.cpp" />
     <ClCompile Include="..\conf\conf.cpp" />
+    <ClCompile Include="..\db\control\lobby_db.cpp" />
+    <ClCompile Include="..\db\model\mysql\base_mysql.cpp" />
+    <ClCompile Include="..\db\model\mysql\lobby_mysql.cpp" />
     <ClCompile Include="..\event\event.cpp" />
     <ClCompile Include="..\log\log.cpp" />
     <ClCompile Include="..\main\lobby_mian.cpp" />
@@ -138,6 +141,9 @@
     <ClInclude Include="..\busi\room\control\room_manager.h" />
     <ClInclude Include="..\busi\room\model\room.h" />
     <ClInclude Include="..\conf\conf.h" />
+    <ClInclude Include="..\db\control\lobby_db.h" />
+    <ClInclude Include="..\db\model\mysql\base_mysql.h" />
+    <ClInclude Include="..\db\model\mysql\lobby_mysql.h" />
     <ClInclude Include="..\event\event.h" />
     <ClInclude Include="..\log\log.h" />
     <ClInclude Include="..\main\lobby_mian.h" />
