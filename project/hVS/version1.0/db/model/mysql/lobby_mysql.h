@@ -3,7 +3,7 @@
 
 #include "mysql.h"
 
-int lobby_model_reg_user(const char *name);
+int lobby_db_model_reg_user(const char *name);
 
 #endif
 

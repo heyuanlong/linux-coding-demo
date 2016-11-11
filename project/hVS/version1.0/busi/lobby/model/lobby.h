@@ -17,7 +17,7 @@ struct lobby_s {
 	int room_nums;
 };
 
-int busi_lobby_model_reg();
+int busi_lobby_model_reg(const char *name);
 int busi_lobby_model_is_reg(int user_id);
 int busi_lobby_model_login(int user_id);
 int busi_lobby_model_is_login(int user_id);

@@ -2,7 +2,7 @@
 #include "base_mysql.h"
 #include "log/log.h"
 
-int lobby_model_reg_user(const char *name)
+int lobby_db_model_reg_user(const char *name)
 {
 	MYSQL  *mysql;
 	char buf[1024];
