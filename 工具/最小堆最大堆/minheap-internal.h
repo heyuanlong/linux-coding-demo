@@ -23,8 +23,8 @@ typedef struct min_heap
 //只要改这里就变成最大堆了
 #define	evutil_timercmp(tvp, uvp, cmp)					\
 	(((tvp)->tv_sec == (uvp)->tv_sec) ?				\
-	 ((tvp)->tv_usec > (uvp)->tv_usec) :				\
-	 ((tvp)->tv_sec > (uvp)->tv_sec))
+	 ((tvp)->tv_usec cmp (uvp)->tv_usec) :				\
+	 ((tvp)->tv_sec cmp (uvp)->tv_sec))
 
 
 static inline void	     min_heap_ctor(min_heap_t* s);
@@ -143,4 +143,35 @@ void min_heap_shift_down_(min_heap_t* s, unsigned hole_index, struct hvs_event* 
     (s->p[hole_index] = e)->min_heap_idx = hole_index;
 }
 
+
+
+
+
+#define evutil_timeradd(tvp, uvp, vvp)					\
+	do {								\
+		(vvp)->tv_sec = (tvp)->tv_sec + (uvp)->tv_sec;		\
+		(vvp)->tv_usec = (tvp)->tv_usec + (uvp)->tv_usec;       \
+		if ((vvp)->tv_usec >= 1000000) {			\
+			(vvp)->tv_sec++;				\
+			(vvp)->tv_usec -= 1000000;			\
+		}							\
+	} while (0)
+
+#define	evutil_timersub(tvp, uvp, vvp)					\
+	do {								\
+		(vvp)->tv_sec = (tvp)->tv_sec - (uvp)->tv_sec;		\
+		(vvp)->tv_usec = (tvp)->tv_usec - (uvp)->tv_usec;	\
+		if ((vvp)->tv_usec < 0) {				\
+			(vvp)->tv_sec--;				\
+			(vvp)->tv_usec += 1000000;			\
+		}							\
+	} while (0)
+
+#define	evutil_timerclear(tvp)	(tvp)->tv_sec = (tvp)->tv_usec = 0
+
+
+
+
+
 #endif /* _MIN_HEAP_H_ */
+

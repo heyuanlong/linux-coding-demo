@@ -6,7 +6,12 @@ void log_error_fd(const char *fmt, ...)
 {
 
 	static char s_message[LOG_MESSAGE];
+#if defined(HVS_DEBUG)
+	static int fd = STDERR_FILENO;
+#else
 	static int fd = get_error_fd();
+#endif
+
 	int len;
 	va_list argp;
 	va_start(argp, fmt);
@@ -18,7 +23,12 @@ void log_error_fd(const char *fmt, ...)
 void log_warning_fd(const char *fmt, ...)
 {
 	static char s_message[LOG_MESSAGE];
+#if defined(HVS_DEBUG)
+	static int fd = STDERR_FILENO;
+#else
 	static int fd = get_warning_fd();
+#endif
+	
 	int len;
 	va_list argp;
 	va_start(argp, fmt);
@@ -30,7 +40,12 @@ void log_warning_fd(const char *fmt, ...)
 void log_info_fd(const char *fmt, ...)
 {
 	static char s_message[LOG_MESSAGE];
+#if defined(HVS_DEBUG)
+	static int fd = STDERR_FILENO;
+#else
 	static int fd = get_info_fd();
+#endif
+
 	int len;
 	va_list argp;
 	va_start(argp, fmt);

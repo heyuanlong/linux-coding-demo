@@ -33,6 +33,8 @@ int conf_init()
 
 	while(fgets(buf, CONFBUFSIZE,fp) != NULL)
 	{
+		buf[strlen(buf) - 1] = '\0';
+		printf("%s\n", buf);
 		parse(buf, key, value);
 		if (strcmp(key, "conf_room_server") == 0) {
 			strncpy(s_server[s_server_nums], value, IPSTRLEN - 1);
@@ -69,15 +71,19 @@ int conf_init()
 		}
 		else if (strcmp(key, "mysql_host") == 0) {
 			strncpy(mysql_host, value, SQLBUFSIZE - 1);
+			printf("mysql_host:%s--------\n", mysql_host);
 		}
 		else if (strcmp(key, "mysql_user") == 0) {
 			strncpy(mysql_user, value, SQLBUFSIZE - 1);
+			printf("mysql_user:%s--------\n", mysql_user);
 		}
 		else if (strcmp(key, "mysql_password") == 0) {
 			strncpy(mysql_password, value, SQLBUFSIZE - 1);
+			printf("mysql_password:%s--------\n", mysql_password);
 		}
 		else if (strcmp(key, "mysql_db") == 0) {
 			strncpy(mysql_db, value, SQLBUFSIZE - 1);
+			printf("mysql_db:%s--------\n", mysql_db);
 		}
 		else {
 		}
@@ -154,6 +160,7 @@ int parse(char *buf, char *key, char *value)
 	value[k++] = '\0';
 	trim_string(key);
 	trim_string(value);
+	
 	return 0;
 }
 static int trim_string(char *buf)

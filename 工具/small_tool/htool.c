@@ -5,7 +5,7 @@
 void msSleep(int millSec)
 {
 #if (defined(_WIN32) || defined(_WIN64) || defined(_WINDOWS_))
-	Sleep(millSec);
+	Sleep(millSec); //#include <windows.h>
 #else
 	usleep(1000 * millSec);
 #endif

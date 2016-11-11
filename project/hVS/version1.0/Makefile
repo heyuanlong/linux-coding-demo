@@ -35,13 +35,13 @@ testClient=bin/testClient
 Inc=Dir main/
 LibDbMysql=-L../third-party/libs -lmysqlclient
 CC=g++
-CFLAGS=
+CFLAGS= -I/usr/include/mysql -L/usr/lib64/mysql -lmysqlclient
 
 #---------------------------
 
 .PHONY: all clean
 
-all:	$(makeDir) $(testClient) $(lobby)
+all:	$(makeDir) $(testClient) $(lobby) 
 	@echo all is ok
 
 test:$(makeDir) $(testClient)
@@ -59,42 +59,67 @@ $(testClient):$(testObj)
 
 #------------ 
 $(lobby):$(lobbyObj)
-	$(CC) -o $@ $^
+	$(CC) $(CFLAGS) -o $@ $^
 
 
-
+BLCCFLAGS=
 busi/lobby/control/%.o:busi/lobby/control/%.cpp
-	$(CC)  -c -o $@ $^ -I./ 
+	$(CC) $(BLCCFLAGS)  -c -o $@ $^ -I./ 
+
+BLMOBJCFLAGS=
 busi/lobby/model/%.o:busi/lobby/model/%.cpp
-	$(CC)  -c -o $@ $^ -I./ 
+	$(CC) $(BLMOBJCFLAGS)  -c -o $@ $^ -I./ 
+
+BRCOBJCFLAGS=
 busi/room/control/%.o:busi/room/control/%.cpp
-	$(CC)  -c -o $@ $^ -I./ 
+	$(CC) $(BRCOBJCFLAGS)  -c -o $@ $^ -I./ 
+
+BRMOBJCFLAGS=
 busi/room/model/%.o:busi/room/model/%.cpp
-	$(CC)  -c -o $@ $^ -I./ 
+	$(CC) $(BRMOBJCFLAGS)  -c -o $@ $^ -I./ 
+
+CCOBJCFLAGS=
 cahe/control/%.o:cahe/control/%.cpp
-	$(CC)  -c -o $@ $^ -I./ 
+	$(CC) $(CCOBJCFLAGS)  -c -o $@ $^ -I./ 
+
+CMROBJCFLAGS=
 cahe/model/redis/%.o:cahe/model/redis/%.cpp
-	$(CC)  -c -o $@ $^ -I./ 
+	$(CC) $(CMROBJCFLAGS)  -c -o $@ $^ -I./ 
+
+COBJCFLAGS=
 conf/%.o:conf/%.cpp
-	$(CC)  -c -o $@ $^ -I./ 
+	$(CC) $(COBJCFLAGS)  -c -o $@ $^ -I./ 
+
+DCOBJCFLAGS=-I/usr/include/mysql -L/usr/lib64/mysql -lmysqlclient
 db/control/%.o:db/control/%.cpp
-	$(CC)  -c -o $@ $^ -I./ 
+	$(CC) $(DCOBJCFLAGS)  -c -o $@ $^ -I./ 
+
+DMMOBJCFLAGS=-I/usr/include/mysql -L/usr/lib64/mysql -lmysqlclient
 db/model/mysql/%.o:db/model/mysql/%.cpp
-	$(CC)  -c -o $@ $^ -I./ 
+	$(CC) $(DMMOBJCFLAGS)  -c -o $@ $^ -I./ 
+
+EOBJCFLAGS=
 event/%.o:event/%.cpp
-	$(CC)  -c -o $@ $^ -I./ 
+	$(CC) $(EOBJCFLAGS)  -c -o $@ $^ -I./ 
+
+LOBJCFLAGS= -DHVS_DEBUG
 log/%.o:log/%.cpp
-	$(CC)  -c -o $@ $^ -I./ 
+	$(CC) $(LOBJCFLAGS)  -c -o $@ $^ -I./ 
+
+MOBJCFLAGS=
 mem/%.o:mem/%.cpp
-	$(CC)  -c -o $@ $^ -I./ 
+	$(CC) $(MOBJCFLAGS)  -c -o $@ $^ -I./ 
+
+NOBJCFLAGS=
 net/%.o:net/%.cpp
-	$(CC)  -c -o $@ $^ -I./ 
+	$(CC) $(NOBJCFLAGS)  -c -o $@ $^ -I./ 
+
+TOBJCFLAGS=
 tool/%.o:tool/%.cpp
-	$(CC)  -c -o $@ $^ -I./ 
+	$(CC) $(TOBJCFLAGS)  -c -o $@ $^ -I./ 
 
 main/lobby_mian.o:main/lobby_mian.cpp
 	$(CC)  -c -o $@ $^ -I./ 
-
 
 clean:
 	rm -rf $(testObj)

@@ -9,7 +9,7 @@ int busi_lobby_model_reg(const char *name)
 {
 	int user_id = lobby_db_control_reg_user(name);
 	if (user_id < 0) {
-		log_error_fd("busi_lobby_model_reg failed");
+		printf("busi_lobby_model_reg failed\n");
 		return -1;
 	}
 	return user_id;
