@@ -184,5 +184,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Makefile" />
+    <None Include="..\vs.sh" />
   </ItemGroup>
 </Project>
