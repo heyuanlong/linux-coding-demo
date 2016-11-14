@@ -5,9 +5,9 @@
 static int add_user_to_lobby(int user_id);
 
 
-int busi_lobby_model_reg(const char *name)
+int busi_lobby_model_reg(const char *name, const char *email)
 {
-	int user_id = lobby_db_control_reg_user(name);
+	int user_id = lobby_db_control_reg_user(name,email);
 	if (user_id < 0) {
 		printf("busi_lobby_model_reg failed\n");
 		return -1;

@@ -17,12 +17,27 @@
 #define BACK_LOGOUT 1103
 #define BACK_ENTER_ROOM 1104
 
+typedef struct ms_str_s
+{
+	int str_len;
+	char *str;
+}ms_str_t;
 typedef struct lobby_busi_head_s lobby_busi_head_t;
 struct lobby_busi_head_s {
 	int size;
 	int from_type;
 	int cmd;
 };
+
+typedef struct lobby_busi_reg_s lobby_busi_reg_t;
+struct lobby_busi_reg_s {
+	lobby_busi_head_s m_head;
+	char name[50];
+	char email[50];
+};
+
+
+
 
 typedef struct lobby_event_s lobby_event_t;
 struct lobby_event_s {
@@ -37,6 +52,14 @@ struct lobby_callback_s {
 	int user_id;
 	int room_id;
 	int status;
+};
+
+
+typedef struct lobby_busi_msg_s lobby_busi_msg_t;
+struct lobby_busi_msg_s {
+	lobby_busi_head_s m_head;
+	int data_size;
+	char data[0];
 };
 
 

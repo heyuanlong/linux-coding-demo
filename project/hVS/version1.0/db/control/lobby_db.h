@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-int lobby_db_control_reg_user(const char *name);
+int lobby_db_control_reg_user(const char *name, const char *email);
 
 
 

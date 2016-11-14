@@ -86,11 +86,15 @@ int busi_lobby_reg(lobby_busi_t* busi)
 {
 	lobby_busi_reg_t *reg = (lobby_busi_reg_t*)busi->data;
 	char name[51] = {0};
+	char email[51] = { 0 };
+
 	int user_id;
 	lobby_callback_t cback;
 
-	snprintf(name, reg->name.str_len, "%s",reg->name.str);
-	user_id = busi_lobby_model_reg(name);
+	sprintf(name, "%s", reg->name);
+	sprintf(email, "%s", reg->email);
+
+	user_id = busi_lobby_model_reg(name, email);
 	if (user_id < 0) {
 		printf("busi_lobby_reg have failed\n");
 	}

@@ -32,6 +32,7 @@ typedef struct ms_str_s
 	int str_len;
 	char *str;
 }ms_str_t;
+
 typedef struct lobby_busi_head_s lobby_busi_head_t;
 struct lobby_busi_head_s {
 	int size;
@@ -42,7 +43,8 @@ struct lobby_busi_head_s {
 typedef struct lobby_busi_reg_s lobby_busi_reg_t;
 struct lobby_busi_reg_s {
 	lobby_busi_head_s m_head;
-	ms_str_t name;
+	char name[50];
+	char email[50];
 };
 
 

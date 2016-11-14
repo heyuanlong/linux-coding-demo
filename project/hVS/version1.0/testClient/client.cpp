@@ -197,15 +197,24 @@ int sendRoom(const char *buf,const int len)
 
 int getBufReg(char *buf,int *bufLen)
 {
-	lobby_event_t *req = (lobby_event_t*)malloc(sizeof(lobby_event_t));
-	memset(req,0,sizeof(lobby_event_t));
-	req->m_head.size = sizeof(lobby_event_t);
+	const char *name = "nickname";
+	int name_size = strlen(name);
+	const char *email = "1023417614@qq.com";
+	int email_size = strlen(email);
+
+
+	int packet_size = sizeof(lobby_busi_reg_t) ;
+	lobby_busi_reg_t *req = (lobby_busi_reg_t*)malloc(packet_size);
+	memset(req,0,packet_size);
+	req->m_head.size = packet_size ;
 	req->m_head.from_type = FROM_TYPE_CLIENT;
 	req->m_head.cmd = CMD_REG;
-	req->user_id = 0;
-	req->room_id = 0;
-	memcpy(buf,(char *)req, req->m_head.size);
-	*bufLen = req->m_head.size;
+
+	memcpy(req->name,name, name_size);
+	memcpy(req->email,email, email_size);
+
+	memcpy(buf,(const void *)req, req->m_head.size);
+	*bufLen = packet_size;
 	free(req);
 	return 0;
 }
