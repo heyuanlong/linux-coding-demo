@@ -37,6 +37,13 @@ struct lobby_busi_reg_s {
 };
 
 
+typedef struct lobby_login_s lobby_login_t;
+struct lobby_login_s {
+	lobby_busi_head_t m_head;
+	int user_id;
+	int room_id;
+};
+
 
 
 typedef struct lobby_event_s lobby_event_t;

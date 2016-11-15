@@ -47,6 +47,15 @@ struct lobby_busi_reg_s {
 	char email[50];
 };
 
+typedef struct lobby_login_s lobby_login_t;
+struct lobby_login_s {
+	lobby_busi_head_t m_head;
+	int user_id;
+	int room_id;
+};
+
+
+
 
 
 

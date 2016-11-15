@@ -219,20 +219,23 @@ int getBufReg(char *buf,int *bufLen)
 	return 0;
 }
 
+
 int getBufLogin(char *buf,int *bufLen)
 {
-	lobby_event_t *req = (lobby_event_t*)malloc(sizeof(lobby_event_t));
-	memset(req,0,sizeof(lobby_event_t));
-	req->m_head.size = sizeof(lobby_event_t);
+	int user_id = 2;
+	lobby_login_t *req = (lobby_login_t*)malloc(sizeof(lobby_login_t));
+	memset(req,0,sizeof(lobby_login_t));
+	req->m_head.size = sizeof(lobby_login_t);
 	req->m_head.from_type = FROM_TYPE_CLIENT;
-	req->m_head.cmd = CMD_REG;
-	req->user_id = 0;
+	req->m_head.cmd = 1002;
+	req->user_id = user_id;
 	req->room_id = 0;
 	memcpy(buf,(char *)req, req->m_head.size);
 	*bufLen = req->m_head.size;
 	free(req);
 	return 0;
 }
+
 int getBufLogout(char *buf,int *bufLen)
 {
 	lobby_event_t *req = (lobby_event_t*)malloc(sizeof(lobby_event_t));

@@ -4,6 +4,7 @@
 #include "mysql.h"
 
 int lobby_db_model_reg_user(const char *name,const char *email);
+int lobby_db_model_is_reg_user(int user_id);
 
 #endif
 

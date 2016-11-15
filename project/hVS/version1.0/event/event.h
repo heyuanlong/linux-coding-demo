@@ -13,8 +13,7 @@
 int event_lobby_init();
 int event_lobby_loop(busi_lobby_callback_handle_t lobby_callback);
 
-int event_lobby_reg_notify(lobby_busi_t *busi);
-int event_lobby_login_notify(lobby_busi_t *busi);
-int event_lobby_logout_notify(lobby_busi_t *busi);
+int event_lobby_notify(lobby_busi_t *busi);
+
 
 #endif

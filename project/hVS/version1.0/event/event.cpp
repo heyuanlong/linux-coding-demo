@@ -33,7 +33,7 @@ int event_lobby_loop(busi_lobby_callback_handle_t lobby_callback)
 
 }
 
-int event_lobby_reg_notify(lobby_busi_t *busi)
+int event_lobby_notify(lobby_busi_t *busi)
 {
 	int sendLen = net_upd_send(lobby_server_upd_socket, (const char *)busi->data, busi->data_len ,busi->addr);
 	if (sendLen <= 0) {
@@ -41,14 +41,7 @@ int event_lobby_reg_notify(lobby_busi_t *busi)
 	}
 	return 0;
 }
-int event_lobby_login_notify(lobby_busi_t *busi)
-{
 
-}
-int event_lobby_logout_notify(lobby_busi_t *busi)
-{
-
-}
 
 
 /*

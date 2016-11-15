@@ -107,23 +107,39 @@ int busi_lobby_reg(lobby_busi_t* busi)
 
 	busi->data = (void*)(&cback);
 	busi->data_len = cback.m_head.size;
-	event_lobby_reg_notify(busi);
+	event_lobby_notify(busi);
 
 	return 0;
 }
 int busi_lobby_login(lobby_busi_t* busi)
 {
+	lobby_login_t *log = (lobby_login_t*)busi->data;
 	int res;
 	int is_reg;
-	is_reg = busi_lobby_model_is_reg(11);
+	lobby_callback_t cback;
+	cback.m_head.size = sizeof(lobby_callback_t);
+	cback.m_head.from_type = TO_TYPE_CLIENT;
+	cback.m_head.cmd = BACK_LOGIN;
+	cback.user_id = log->user_id;
+	cback.room_id = 0;
+	busi->data = (void*)(&cback);
+	busi->data_len = cback.m_head.size;
+
+	is_reg = busi_lobby_model_is_reg(log->user_id);
 	if (is_reg < 0) {
-
+		cback.status = -1;
 	}
-	res = busi_lobby_model_login(11);
-	if (res < 0) {
-
+	else {
+		res = busi_lobby_model_login(log->user_id);
+		if (res < 0) {
+			cback.status = -1;
+		}
+		else {
+			cback.status = 0;
+		}
 	}
-	event_lobby_login_notify(busi);
+
+	event_lobby_notify(busi);
 	return 0;
 }
 int busi_lobby_logout(lobby_busi_t* busi)
@@ -138,7 +154,7 @@ int busi_lobby_logout(lobby_busi_t* busi)
 	if (res < 0) {
 
 	}
-	event_lobby_logout_notify(busi);
+	event_lobby_notify(busi);
 	return 0;
 }
 int busi_lobby_enter_room(lobby_busi_t* busi)

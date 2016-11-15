@@ -16,10 +16,11 @@ int busi_lobby_model_reg(const char *name, const char *email)
 }
 int busi_lobby_model_is_reg(int user_id)
 {
-
+	return lobby_db_control_is_reg_user(user_id);
 }
 int busi_lobby_model_login(int user_id)
 {
+	return 0;
 }
 int busi_lobby_model_is_login(int user_id)
 {
