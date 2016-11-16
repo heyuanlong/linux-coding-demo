@@ -11,21 +11,27 @@
 
 #include "busi/lobby/model/lobby.h"
 
-#define FROM_TYPE_CLIENT 1000
-#define CMD_REG 1001
-#define CMD_LOGIN 1002
-#define CMD_LOGOUT 1003
-#define CMD_ENTER_ROOM 1004
+#define FROM_TYPE_CLIENT						1000
+#define CMD_REG									1001
+#define CMD_LOGIN								1002
+#define CMD_LOGOUT								1003
+#define CMD_ENTER_ROOM							1004
 
-#define FROM_TYPE_ROOM_SERVER 2000
-#define CMD_GOOUT_ROOM 2001
+#define FROM_TYPE_ROOM_SERVER					2000
+#define CMD_GOOUT_ROOM							2001
 
-#define TO_TYPE_CLIENT 1100
-#define BACK_REG 1101
-#define BACK_LOGIN 1102
-#define BACK_LOGOUT 1103
-#define BACK_ENTER_ROOM 1104
+#define TO_TYPE_CLIENT							1100
+#define BACK_REG								1101
+#define BACK_LOGIN								1102
+#define BACK_LOGOUT								1103
+#define BACK_ENTER_ROOM							1104
 
+#define HVS_OK									0
+#define HVA_ERROR								-1
+#define SOME_ERROR								-100000
+#define THIS_USER_ID_IS_NOT_REG					-100001
+#define HAD_LOGIN_LOBBY							-100002
+#define NOT_LOGIN_LOBBY							-100003
 
 typedef struct ms_str_s
 {
@@ -53,7 +59,7 @@ struct lobby_login_s {
 	int user_id;
 	int room_id;
 };
-
+typedef lobby_login_t lobby_logout_t;
 
 
 
@@ -73,6 +79,7 @@ struct lobby_callback_s {
 	int user_id;
 	int room_id;
 	int status;
+	int code;
 };
 
 

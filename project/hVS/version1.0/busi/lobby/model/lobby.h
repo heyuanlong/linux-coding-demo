@@ -17,11 +17,12 @@ struct lobby_s {
 	int room_nums;
 };
 
+
 int busi_lobby_model_reg(const char *name, const char *email);
 int busi_lobby_model_is_reg(int user_id);
-int busi_lobby_model_login(int user_id);
-int busi_lobby_model_is_login(int user_id);
-int busi_lobby_model_logout(int user_id);
+int busi_lobby_model_login(lobby_t *plobby,int user_id);
+int busi_lobby_model_is_login(lobby_t *plobby, int user_id);
+int busi_lobby_model_logout(lobby_t*plobby, int user_id);
 int busi_lobby_model_enter_room(int user_id,int room_id);
 int busi_lobby_model_goout_room(int user_id,int room_id);
 

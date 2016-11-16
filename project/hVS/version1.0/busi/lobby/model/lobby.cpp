@@ -18,15 +18,28 @@ int busi_lobby_model_is_reg(int user_id)
 {
 	return lobby_db_control_is_reg_user(user_id);
 }
-int busi_lobby_model_login(int user_id)
+int busi_lobby_model_login(lobby_t *plobby,int user_id)
 {
+	user_set_t::iterator it;
+	it = plobby->user_set.find(user_id);
+	if (it != plobby->user_set.end()) {
+		return HAD_LOGIN_LOBBY;
+	}
+	plobby->user_set.insert(user_id);
 	return 0;
 }
-int busi_lobby_model_is_login(int user_id)
+int busi_lobby_model_is_login(lobby_t*plobby,int user_id)
 {
+	user_set_t::iterator it;
+	it = plobby->user_set.find(user_id);
+	if (it != plobby->user_set.end()) {
+		return 0;
+	}
+	return NOT_LOGIN_LOBBY;
 }
-int busi_lobby_model_logout(int user_id)
+int busi_lobby_model_logout(lobby_t*plobby, int user_id)
 {
+	return 0;
 }
 int busi_lobby_model_enter_room(int user_id, int room_id)
 {
