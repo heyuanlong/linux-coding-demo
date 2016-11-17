@@ -146,7 +146,7 @@ void min_heap_shift_down_(min_heap_t* s, unsigned hole_index, struct hvs_event* 
 
 
 
-
+// struct timeval 时间相加
 #define evutil_timeradd(tvp, uvp, vvp)					\
 	do {								\
 		(vvp)->tv_sec = (tvp)->tv_sec + (uvp)->tv_sec;		\
@@ -157,6 +157,7 @@ void min_heap_shift_down_(min_heap_t* s, unsigned hole_index, struct hvs_event* 
 		}							\
 	} while (0)
 
+// struct timeval 时间相减
 #define	evutil_timersub(tvp, uvp, vvp)					\
 	do {								\
 		(vvp)->tv_sec = (tvp)->tv_sec - (uvp)->tv_sec;		\
@@ -167,6 +168,7 @@ void min_heap_shift_down_(min_heap_t* s, unsigned hole_index, struct hvs_event* 
 		}							\
 	} while (0)
 
+// struct timeval 清空
 #define	evutil_timerclear(tvp)	(tvp)->tv_sec = (tvp)->tv_usec = 0
 
 
