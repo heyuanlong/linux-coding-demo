@@ -11,3 +11,6 @@ all:    $(SERVE)
 
 $(SERVE):
 	$(CC) -o $(SERVE) test.cpp
+
+clean:
+	rm -rf $(SERVE)

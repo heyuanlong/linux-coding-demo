@@ -19,25 +19,25 @@ static inline void KO_INIT_LIST_HEAD(struct ko_list_head *list)
 	struct ko_list_head name = KO_LIST_HEAD_INIT(name)
 
 
-static inline void __ko_list_add(struct ko_list_head *new,
+static inline void __ko_list_add(struct ko_list_head *new_t,
 								struct ko_list_head *prev,
 								struct ko_list_head *next)
 {
-	next->prev = new;
-	new->next = next;
-	new->prev = prev;
-	prev->next = new;
+	next->prev = new_t;
+	new_t->next = next;
+	new_t->prev = prev;
+	prev->next = new_t;
 }
 
 
-static inline void ko_list_add(struct ko_list_head *new, struct ko_list_head *head)
+static inline void ko_list_add(struct ko_list_head *new_t, struct ko_list_head *head)
 {
-	__ko_list_add(new, head, head->next);
+	__ko_list_add(new_t, head, head->next);
 }
 
-static inline void ko_list_add_tail(struct ko_list_head *new, struct ko_list_head *head)
+static inline void ko_list_add_tail(struct ko_list_head *new_t, struct ko_list_head *head)
 {
-    __ko_list_add(new, head->prev, head);
+    __ko_list_add(new_t, head->prev, head);
 }
 
 #define ko_list_for_each(pos, head) \
@@ -75,11 +75,11 @@ static inline struct ko_list_head* ko_list_del_next(struct ko_list_head *entry)
     return next;
 }
 
-static inline ko_int32_t ko_list_iterator(struct ko_list_head *entry, struct ko_list_head **iterator)
+static inline int ko_list_iterator(struct ko_list_head *entry, struct ko_list_head **iterator)
 {
     *iterator = 0;
     if (entry->next == entry) {
-        return KO_ERROR;
+        return -1;
     }
 
     *iterator = entry->next;
