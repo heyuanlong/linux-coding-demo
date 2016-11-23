@@ -73,6 +73,6 @@ int main(int argc, char const *argv[])
     }
 
     cout<<"list size:"<<mylist.size()<<endl;    //元素数量
-	
+	showList(mylist); 
 	return 0;
 }
